@@ -119,8 +119,8 @@ def plot_fn_histogram(coeffs, fns):
 
 def plot_data_histogram(data):
     assert data.shape[1] == 2
-    H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=100)
-    H.shape, xedges.shape, yedges.shape = ((100, 100), (101,), (101,))
+    H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50)
+    H.shape, xedges.shape, yedges.shape = ((50, 50), (51,), (51,))
     
     extent = [yedges[0], yedges[-1], xedges[-1], xedges[0]]
     fig = plt.figure()
@@ -128,3 +128,11 @@ def plot_data_histogram(data):
     ax.imshow(H, extent=extent, interpolation='nearest')
     plt.show()
 
+
+
+if __name__=='__main__':
+    [coeffs, fns] = trig_density(4, 5, 2)
+    plot_surface(coeffs, fns)
+    data = rejection_sample(coeffs, fns, 100000, 2)
+    plot_fn_histogram(coeffs, fns)
+    plot_data_histogram(data)
