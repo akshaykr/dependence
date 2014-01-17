@@ -44,7 +44,6 @@ if __name__=='__main__':
     if do_one_d:
         print "One dimensional example"
         D = density.UniTrigDensity(s, 10)
-        print D.coeffs
 
         print "Sampling %d samples from univariate density" % (n)
         data = D.sample(n)

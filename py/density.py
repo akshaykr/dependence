@@ -34,15 +34,23 @@ class TrigDensity(object):
         fns = [lambda x: 1]
 
         total = 0
-        curr = [0 for i in range(self.d)]
+        curr = np.matrix(np.zeros((self.d, 1)))
         while total <= self.L:
-            curr[np.argmin(curr)] += 1
+            curr[np.argmin(curr),0] += 1
             new_coeff = np.random.normal(0, 0.1)
             coeffs.append(new_coeff)
-            fns.append(lambda x: np.exp(2j*np.pi*np.sum([curr[i]*x[i] for i in range(len(curr))])))
-            total += new_coeff**2 * np.sum([curr[i]**(2*self.s) for i in range(len(curr))])
+##            fns.append(lambda x: np.exp(2j*np.pi*np.sum([curr[i]*x[0,i] for i in range(len(curr))])))
+            fns.append(lambda x: np.exp(2j*np.pi*np.matrix(curr)*np.matrix(x))[0,0])
+            total += new_coeff**2 * np.sum([curr[i,0]**(2*self.s) for i in range(curr.shape[0])])
         self.coeffs = coeffs
         self.fns = fns
+
+    def eval(self, pts):
+        t = pts.shape[0]
+        vals = []
+        for i in range(t):
+            vals.append(linear_combination(self.coeffs, self.fns, pts[i,:]))
+        return vals
 
     def sample(self, n):
         """
@@ -53,7 +61,7 @@ class TrigDensity(object):
         while len(x) < n:
             proposal = np.random.uniform(0, 1, [n, self.d])
             us = np.random.uniform(0,1,n)
-            to_retain = [i for i in range(n) if us[i] < linear_combination(self.coeffs, self.fns, [proposal[i,0], proposal[i,1]])/2]
+            to_retain = [i for i in range(n) if us[i] < linear_combination(self.coeffs, self.fns, proposal[i,:])/2]
             if x == []:
                 x = proposal[to_retain,:]
             else:
@@ -72,7 +80,7 @@ class TrigDensity(object):
         y = np.arange(0, 1, 0.01)
         for i in x:
             for j in y:
-                z.append(linear_combination(self.coeffs, self.fns, [i,j]))
+                z.append(self.eval(np.matrix([[i,j]]))[0])
         z = np.array(z)
         Z = np.real(z.reshape(len(x), len(y)))
         X,Y = np.meshgrid(x,y)
@@ -112,6 +120,7 @@ class TrigDensity(object):
         For samples from a 2-d density, plot the top-down histogram of the empirical density contours. This is a colored matrix.
         If supplied ax, plot on that axis. Otherwise plot and show in a new figure.
         """
+        data = np.array(data)
         assert data.shape[1] == 2
         H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50)
         H.shape, xedges.shape, yedges.shape = ((50, 50), (51,), (51,))
@@ -161,6 +170,13 @@ class UniTrigDensity(object):
         self.coeffs = coeffs
         self.fns = fns
 
+    def eval(self, pts):
+        t = pts.shape[0]
+        vals = []
+        for i in range(t):
+            vals.append(linear_combination(self.coeffs, self.fns, pts[i,:]))
+        return vals
+
     def sample(self, n):
         """
         Rejection sampler for f(x) = \sum_i coeffs_i fns_i(x)
@@ -168,19 +184,19 @@ class UniTrigDensity(object):
         """
         x = []
         while len(x) < n:
-            proposal_samples = np.random.uniform(0,1,n)
+            proposal_samples = np.matrix(np.random.uniform(0,1,(n,1)))
             us = np.random.uniform(0, 1, n)
             
-            to_retain = [us[i] < linear_combination(self.coeffs, self.fns, proposal_samples[i])/2 for i in range(len(proposal_samples))]
-            x.extend([proposal_samples[i] for i in range(len(proposal_samples)) if to_retain[i]])
+            to_retain = [us[i] < self.eval(proposal_samples[i,:])[0]/2 for i in range(proposal_samples.shape[0])]
+            x.extend([proposal_samples[i,0] for i in range(proposal_samples.shape[0]) if to_retain[i]])
         return np.matrix(x[0:n]).T
 
     def plot_fn(self, ax=None):
         """
         Plot the density. If supplied ax, plot on that axis. Otherwise plot and show in a new figure.
         """
-        x = np.arange(0, 1, 0.01)
-        y = [linear_combination(self.coeffs, self.fns, x[i]) for i in range(len(x))]
+        x = np.matrix(np.arange(0, 1, 0.01)).T
+        y = self.eval(x)
         if ax==None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
@@ -195,6 +211,7 @@ class UniTrigDensity(object):
         Plot histogram of data.
         If supplied ax, plot on that axis. Otherwise plot and show in a new figure.
         """
+        data = np.array(data)
         if ax==None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
@@ -207,10 +224,11 @@ if __name__=='__main__':
     fig = plt.figure()
     ax1 = fig.add_subplot(231, projection='3d')
     print "Constructing 2d Sobolev density"
-    TD = TrigDensity(4,5,2)
+    TD = TrigDensity(4,2,2)
+    print TD.coeffs
     TD.plot_surface(ax=ax1)
     print "Rejection Sampling 2d Sobolev density"
-    data = TD.sample(100000)
+    data = TD.sample(10000)
     ax2 = fig.add_subplot(232)
     TD.plot_fn_histogram(ax=ax2)
     ax3 = fig.add_subplot(233)
