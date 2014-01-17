@@ -58,7 +58,7 @@ class TrigDensity(object):
                 x = proposal[to_retain,:]
             else:
                 x = np.append(x, proposal[to_retain,:], 0)
-        return x[0:n,:]
+        return np.matrix(x[0:n,:])
 
     def plot_surface(self, ax=None):
         """
@@ -173,7 +173,7 @@ class UniTrigDensity(object):
             
             to_retain = [us[i] < linear_combination(self.coeffs, self.fns, proposal_samples[i])/2 for i in range(len(proposal_samples))]
             x.extend([proposal_samples[i] for i in range(len(proposal_samples)) if to_retain[i]])
-        return x[0:n]
+        return np.matrix(x[0:n]).T
 
     def plot_fn(self, ax=None):
         """
