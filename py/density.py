@@ -2,6 +2,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
+import itertools
 
 """
 Module for generating densities and related subroutines.
@@ -34,13 +35,17 @@ class TrigDensity(object):
         fns = [lambda x: 1]
 
         total = 0
-        curr = np.matrix(np.zeros((self.d, 1)))
+#         curr = np.matrix(np.zeros((self.d, 1)))
+        f = itertools.combinations_with_replacement(range(10), self.d)
+        f.next()
         while total <= self.L:
-            curr[np.argmin(curr),0] += 1
+            curr = np.matrix(f.next())
+#             curr[np.argmin(curr),0] += 1
+            print curr
             new_coeff = np.random.normal(0, 0.1)
             coeffs.append(new_coeff)
 ##            fns.append(lambda x: np.exp(2j*np.pi*np.sum([curr[i]*x[0,i] for i in range(len(curr))])))
-            fns.append(lambda x: np.exp(2j*np.pi*np.matrix(curr)*np.matrix(x))[0,0])
+            fns.append(lambda x: np.exp(2j*np.pi*np.matrix(curr)*np.matrix(x).T)[0,0])
             total += new_coeff**2 * np.sum([curr[i,0]**(2*self.s) for i in range(curr.shape[0])])
         self.coeffs = coeffs
         self.fns = fns
