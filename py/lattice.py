@@ -9,7 +9,7 @@ def lattice(d, limit=10):
     yield [0 for i in range(d)]
     s = 1
     while True:
-        if s > limit:
+        if limit != None and s > limit:
             return
         s += 1
         for i in range(s**d):

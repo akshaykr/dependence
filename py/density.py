@@ -3,13 +3,15 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import itertools
+import lattice
 
 """
 Module for generating densities and related subroutines.
 """
 
 def linear_combination(coeffs, fns, x):
-    return np.sum([coeffs[i]*fns[i](x) for i in range(len(coeffs))])
+    z = np.sum([coeffs[i]*np.exp(2j*np.pi*fns[i]*np.matrix(x).T)[0,:] for i in range(len(coeffs))], axis=0)
+    return np.abs(z).T
 
 class TrigDensity(object):
     """
@@ -32,30 +34,23 @@ class TrigDensity(object):
         under the trigonometric basis \phi_k(x) = e^{2i \pi k^Tx}
         """
         coeffs = [1]
-        fns = [lambda x: 1]
+        fns = [np.matrix([0 for i in range(self.d)])]
 
         total = 0
-#         curr = np.matrix(np.zeros((self.d, 1)))
-        f = itertools.combinations_with_replacement(range(10), self.d)
+        f = lattice.lattice(self.d, limit=None)
         f.next()
         while total <= self.L:
             curr = np.matrix(f.next())
-#             curr[np.argmin(curr),0] += 1
-            print curr
             new_coeff = np.random.normal(0, 0.1)
             coeffs.append(new_coeff)
-##            fns.append(lambda x: np.exp(2j*np.pi*np.sum([curr[i]*x[0,i] for i in range(len(curr))])))
-            fns.append(lambda x: np.exp(2j*np.pi*np.matrix(curr)*np.matrix(x).T)[0,0])
+            fns.append(curr)
             total += new_coeff**2 * np.sum([curr[i,0]**(2*self.s) for i in range(curr.shape[0])])
         self.coeffs = coeffs
         self.fns = fns
 
     def eval(self, pts):
-        t = pts.shape[0]
-        vals = []
-        for i in range(t):
-            vals.append(linear_combination(self.coeffs, self.fns, pts[i,:]))
-        return vals
+        vals =  linear_combination(self.coeffs, self.fns, pts)
+        return np.matrix(vals)
 
     def sample(self, n):
         """
@@ -64,9 +59,9 @@ class TrigDensity(object):
         """
         x = []
         while len(x) < n:
-            proposal = np.random.uniform(0, 1, [n, self.d])
-            us = np.random.uniform(0,1,n)
-            to_retain = [i for i in range(n) if us[i] < linear_combination(self.coeffs, self.fns, proposal[i,:])/2]
+            proposal = np.matrix(np.random.uniform(0, 1, [n, self.d]))
+            us = np.matrix(np.random.uniform(0,1,n)).T
+            to_retain = np.array(us < self.eval(proposal)).reshape(n,)
             if x == []:
                 x = proposal[to_retain,:]
             else:
@@ -87,7 +82,7 @@ class TrigDensity(object):
             for j in y:
                 z.append(self.eval(np.matrix([[i,j]]))[0])
         z = np.array(z)
-        Z = np.real(z.reshape(len(x), len(y)))
+        Z = np.abs(z.reshape(len(x), len(y)))
         X,Y = np.meshgrid(x,y)
         if ax == None:
             fig = plt.figure()
@@ -109,7 +104,7 @@ class TrigDensity(object):
         z = []
         for i in x:
             for j in y:
-                z.append(linear_combination(self.coeffs, self.fns, [i,j]))
+                z.append(self.eval(np.matrix([[i,j]]))) ## linear_combination(self.coeffs, self.fns, [i,j]))
         z = np.array(z)
         Z = np.real(z.reshape(len(x), len(y)))
         if ax == None:
@@ -159,28 +154,27 @@ class UniTrigDensity(object):
         Construct a trigonometric density in one dimension
         """
         coeffs = [1]
-        fns = [lambda x: 1]
+        fns = [np.matrix([[0]])]
         total = 0
         curr = 2
         while total <= self.L:
             new_coeff = np.random.normal(0, 0.1)
             coeffs.append(new_coeff)
-            if curr % 2 == 0:
-                fns.append(lambda x: np.sqrt(2) * np.cos(np.pi*curr*x))
-                total += new_coeff**2 * curr**(2*self.s)
-            else:
-                fns.append(lambda x: np.sqrt(2) * np.sin(np.pi*(curr-1)*x))
-                total += new_coeff**2 * (curr-1)**(2*self.s)
+            fns.append(np.matrix([[curr]]))
+            total += new_coeff**2 * curr**(2*self.s)
+#             if curr % 2 == 0:
+#                 fns.append(lambda x: np.sqrt(2) * np.cos(np.pi*curr*x))
+
+#             else:
+#                 fns.append(lambda x: np.sqrt(2) * np.sin(np.pi*(curr-1)*x))
+#                 total += new_coeff**2 * (curr-1)**(2*self.s)
             curr += 1
         self.coeffs = coeffs
         self.fns = fns
 
     def eval(self, pts):
-        t = pts.shape[0]
-        vals = []
-        for i in range(t):
-            vals.append(linear_combination(self.coeffs, self.fns, pts[i,:]))
-        return vals
+        vals =  linear_combination(self.coeffs, self.fns, pts)
+        return np.matrix(vals)
 
     def sample(self, n):
         """
@@ -189,12 +183,14 @@ class UniTrigDensity(object):
         """
         x = []
         while len(x) < n:
-            proposal_samples = np.matrix(np.random.uniform(0,1,(n,1)))
-            us = np.random.uniform(0, 1, n)
-            
-            to_retain = [us[i] < self.eval(proposal_samples[i,:])[0]/2 for i in range(proposal_samples.shape[0])]
-            x.extend([proposal_samples[i,0] for i in range(proposal_samples.shape[0]) if to_retain[i]])
-        return np.matrix(x[0:n]).T
+            proposal = np.matrix(np.random.uniform(0, 1, [n, 1]))
+            us = np.matrix(np.random.uniform(0,1,n)).T
+            to_retain = np.array(us < self.eval(proposal)).reshape(n,)
+            if x == []:
+                x = proposal[to_retain,:]
+            else:
+                x = np.append(x, proposal[to_retain,:], 0)
+        return np.matrix(x[0:n])
 
     def plot_fn(self, ax=None):
         """
@@ -229,7 +225,7 @@ if __name__=='__main__':
     fig = plt.figure()
     ax1 = fig.add_subplot(231, projection='3d')
     print "Constructing 2d Sobolev density"
-    TD = TrigDensity(4,2,2)
+    TD = TrigDensity(8,2,2)
     print TD.coeffs
     TD.plot_surface(ax=ax1)
     print "Rejection Sampling 2d Sobolev density"
@@ -240,7 +236,7 @@ if __name__=='__main__':
     TD.plot_data_histogram(data, ax=ax3)
 
     print "Constructing 1d Sobolev density"
-    TD = UniTrigDensity(4,5)
+    TD = UniTrigDensity(8,5)
     ax4 = fig.add_subplot(234)
     TD.plot_fn(ax=ax4)
 
