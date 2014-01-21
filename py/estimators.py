@@ -17,22 +17,36 @@ class PluginEstimator(object):
         self.beta = beta
         self.s = s
         
-    def eval(self):
+    def eval(self, fast=False):
         """
         Evaluate the estimator by performing numeric integration on the n^d grid of points.
         """
         if self.dim == 1:
-            val = numeric_integration(lambda x: np.multiply(
+            if fast:
+                val = fast_integration(lambda x: np.multiply(
                     np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
                     np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                    [0], [1])
+                                       [0], [1])
+            else:
+                val = numeric_integration(lambda x: np.multiply(
+                        np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
+                        np.power(self.Kq.eval(np.matrix(x)), self.beta)),
+                                          [0], [1])
         if self.dim == 2:
-            val = numeric_integration(lambda x,y: np.multiply(
-                    np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                          1)), self.alpha),
-                    np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                          1)), self.beta)),
-                                      [0,0], [1,1])
+            if fast:
+                val = fast_integration(lambda x,y: np.multiply(
+                        np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                             1)), self.alpha),
+                        np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                             1)), self.beta)),
+                                          [0,0], [1,1])
+            else:
+                val = numeric_integration(lambda x,y: np.multiply(
+                        np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                             1)), self.alpha),
+                        np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                             1)), self.beta)),
+                                          [0,0], [1,1])
         return val
 
 
