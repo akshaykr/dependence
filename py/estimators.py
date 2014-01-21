@@ -1,6 +1,7 @@
 import numpy as np
 import kde, density
 import itertools
+from helper import *
 
 class PluginEstimator(object):
     """
@@ -11,6 +12,7 @@ class PluginEstimator(object):
     def __init__(self, pdata, qdata, alpha, beta, s):
         self.Kp = kde.KDE(pdata, s)
         self.Kq = kde.KDE(qdata, s)
+        self.dim = pdata.shape[1]
         self.alpha = alpha
         self.beta = beta
         self.s = s
@@ -26,8 +28,58 @@ class PluginEstimator(object):
             vals = self.Kp.eval(pt)[0]**self.alpha * self.Kq.eval(pt)[0]**self.beta
         return np.mean(vals)
 
-class LinearEstimator(object):
-    pass
+
+class LinearEstimator(PluginEstimator):
+
+    def __init__(self, pdata, qdata, alpha, beta, s):
+        # Shuffle the data and split it into 2 for density estimation and
+        # estimating the other parts.
+        np.random.shuffle(pdata);
+        np.random.shuffle(qdata);
+        num_pdata = pdata.shape[0];
+        num_qdata = qdata.shape[0];
+        # Call the previous constructor
+        PluginEstimator.__init__(self, pdata[0:num_pdata/2, :],
+          qdata[0:num_qdata/2, :], alpha, beta, s);
+        # Store the 2 splits
+        self.p_den_data = pdata[0: num_pdata/2, :];
+        self.q_den_data = qdata[0: num_qdata/2, :];
+        self.p_est_data = pdata[num_pdata/2 + 1: num_pdata, :];
+        self.q_est_data = qdata[num_qdata/2 + 1: num_qdata, :];
+
+    def eval(self, n):
+        # Plugin estimator
+        plugin_est = super(LinearEstimator, self).eval(n);
+        # C1 = - (alpha + beta) * int {p0(x)^alpha q0(x)^beta} dx
+        if self.dim == 1:
+          C1_fn_handle = lambda x: np.multiply( 
+            np.power(self.Kp.eval(np.matrix(x)), self.alpha),
+            np.power(self.Kq.eval(np.matrix(x)), self.beta) );
+          l_limit = [0];
+          u_limit = [1];
+        elif self.dim == 2:
+          C1_fn_handle = lambda x,y : np.multiply( 
+            np.power(self.Kp.eval( np.concatenate((np.matrix(x), np.matrix(y)),
+                                   1) ), self.alpha),
+            np.power(self.Kq.eval( np.concatenate((np.matrix(x), np.matrix(y)),
+                                   1) ), self.beta) );
+          l_limit = [0, 0];
+          u_limit = [1, 1];
+        C1 = -(self.alpha + self.beta) * numeric_integration(
+                                           C1_fn_handle, l_limit, u_limit);
+        # theta^p_{1,1} = alpha * E_{x~p}[p0(x)^(alpha-1) * q0(x)^beta]
+        theta_p_11 = self.alpha * np.mean(
+            np.multiply(np.power(self.Kp.eval(self.p_est_data), self.alpha - 1),
+                        np.power(self.Kq.eval(self.p_est_data), self.beta)
+                       ) );
+        # theta^q_{1,1} = beta * E_{x~q}[p0(x)^alpha * q0(x)^{beta-1}]
+        theta_q_11 = self.beta * np.mean(
+            np.multiply(np.power(self.Kp.eval(self.q_est_data), self.alpha),
+                        np.power(self.Kq.eval(self.q_est_data), self.beta - 1)
+                       ) );
+        # Return plugin + C1 + theta_p_11 + theta_q_11
+        return plugin_est + theta_p_11 + theta_q_11 + C1;
+
 
 class QuadraticEstimator(object):
     pass
@@ -61,17 +113,23 @@ if __name__=='__main__':
     tr = T.eval(100)
     print "T(p,q) approx %0.2f" % (tr)
 
-    scores = []
+    pl_scores = []
+    lin_scores = [];
     for n in range(100, 1000, 100):
         print "n = %d" % (n)
-        sub_scores = []
+        pl_sub_scores = []
+        lin_sub_scores = []
         for i in range(10):
             pdata = Dp.sample(n)
             qdata = Dq.sample(n)            
             PL = PluginEstimator(pdata, qdata, alpha, beta, 2)
-            sc = PL.eval(100)
-            print "Score: %0.2f" % (sc)
-            sub_scores.append(sc)
-        scores.append(sub_scores)
+            LIN = LinearEstimator(pdata, qdata, alpha, beta, 2);
+            pl_sc = PL.eval(100)
+            lin_sc = LIN.eval(100);
+            print "Score(Plugin): %0.2f, Score(Linear): %0.2f" % (pl_sc, lin_sc)
+            pl_sub_scores.append(pl_sc)
+            lin_sub_scores.append(lin_sc)
+        pl_scores.append(pl_sub_scores)
+        lin_scores.append(lin_sub_scores)
     
     print scores
