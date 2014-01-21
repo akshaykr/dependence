@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import power as powr
+import matplotlib.pyplot as plt
 
 def leg_poly_0(u):
   return 1/np.sqrt(2) * np.ones(np.shape(u));
@@ -60,3 +61,22 @@ def kernel(X, order, h=1.0, centre=None):
     ret *= kernel_1D(X[:, dim_idx], centre[0, dim_idx], h, order);
   return ret 
 
+
+if __name__=="__main__":
+  fig = plt.figure(figsize=(10, 5))
+  print "Evaluating 1-d kernels"
+  x = np.matrix(np.arange(-1, 1, 0.01)).T
+  y1 = kernel(x, 1).T[0,:]
+  y2 = kernel(x, 2).T[0,:]
+  y3 = kernel(x, 3).T[0,:]
+  y4 = kernel(x, 4).T[0,:]
+  ax1 = fig.add_subplot(141)
+  ax1.plot(x,y1)
+  ax2 = fig.add_subplot(142)
+  ax2.plot(x,y2)
+  ax3 = fig.add_subplot(143)
+  ax3.plot(x,y3)
+  ax4 = fig.add_subplot(144)
+  ax4.plot(x,y4)
+
+  plt.show()

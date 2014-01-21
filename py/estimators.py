@@ -17,16 +17,23 @@ class PluginEstimator(object):
         self.beta = beta
         self.s = s
         
-    def eval(self, n):
+    def eval(self):
         """
         Evaluate the estimator by performing numeric integration on the n^d grid of points.
         """
-        nr = range(n)
-        vals = []
-        for i in itertools.combinations_with_replacement(nr, self.Kp.d):
-            pt = np.matrix(i)/float(n)
-            vals = self.Kp.eval(pt)[0]**self.alpha * self.Kq.eval(pt)[0]**self.beta
-        return np.mean(vals)
+        if self.dim == 1:
+            val = numeric_integration(lambda x: np.multiply(
+                    np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
+                    np.power(self.Kq.eval(np.matrix(x)), self.beta)),
+                    [0], [1])
+        if self.dim == 2:
+            val = numeric_integration(lambda x,y: np.multiply(
+                    np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                          1)), self.alpha),
+                    np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                          1)), self.beta)),
+                                      [0,0], [1,1])
+        return val
 
 
 class LinearEstimator(PluginEstimator):
@@ -47,9 +54,10 @@ class LinearEstimator(PluginEstimator):
         self.p_est_data = pdata[num_pdata/2 + 1: num_pdata, :];
         self.q_est_data = qdata[num_qdata/2 + 1: num_qdata, :];
 
-    def eval(self, n):
+    def eval(self):
         # Plugin estimator
-        plugin_est = super(LinearEstimator, self).eval(n);
+        plugin_est = super(LinearEstimator, self).eval();
+
         # C1 = - (alpha + beta) * int {p0(x)^alpha q0(x)^beta} dx
         if self.dim == 1:
           C1_fn_handle = lambda x: np.multiply( 
@@ -57,6 +65,7 @@ class LinearEstimator(PluginEstimator):
             np.power(self.Kq.eval(np.matrix(x)), self.beta) );
           l_limit = [0];
           u_limit = [1];
+
         elif self.dim == 2:
           C1_fn_handle = lambda x,y : np.multiply( 
             np.power(self.Kp.eval( np.concatenate((np.matrix(x), np.matrix(y)),
@@ -67,11 +76,13 @@ class LinearEstimator(PluginEstimator):
           u_limit = [1, 1];
         C1 = -(self.alpha + self.beta) * numeric_integration(
                                            C1_fn_handle, l_limit, u_limit);
+
         # theta^p_{1,1} = alpha * E_{x~p}[p0(x)^(alpha-1) * q0(x)^beta]
         theta_p_11 = self.alpha * np.mean(
             np.multiply(np.power(self.Kp.eval(self.p_est_data), self.alpha - 1),
                         np.power(self.Kq.eval(self.p_est_data), self.beta)
                        ) );
+
         # theta^q_{1,1} = beta * E_{x~q}[p0(x)^alpha * q0(x)^{beta-1}]
         theta_q_11 = self.beta * np.mean(
             np.multiply(np.power(self.Kp.eval(self.q_est_data), self.alpha),
@@ -91,13 +102,23 @@ class Truth(object):
         self.alpha = alpha
         self.beta = beta
 
-    def eval(self, n):
-        nr = range(n)
-        vals = []
-        for i in itertools.combinations_with_replacement(nr, self.p.d):
-            pt = np.matrix(i)/float(n)
-            vals = self.p.eval(pt)[0]**self.alpha * self.q.eval(pt)[0]**self.beta
-        return np.mean(vals)
+    def eval(self):
+        """
+        Evaluate the true divergence by performing numeric integration on the n^d grid of points.
+        """
+        if self.dim == 1:
+            val = numeric_integration(lambda x: np.multiply(
+                    np.power(self.p.eval(np.matrix(x)), self.alpha), 
+                    np.power(self.q.eval(np.matrix(x)), self.beta)),
+                    [0], [1])
+        if self.dim == 2:
+            val = numeric_integration(lambda x,y: np.multiply(
+                    np.power(self.p.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                          1)), self.alpha),
+                    np.power(self.q.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                          1)), self.beta)),
+                                      [0,0], [1,1])
+        return val
         
 
 

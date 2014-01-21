@@ -8,9 +8,9 @@ def numeric_integration(f, l_limit, u_limit):
     """
     num_dims = len(l_limit);
     if num_dims == 1:
-      ret = quad(f, l_limit[0], u_limit[0]);
+      ret = quad(f, l_limit[0], u_limit[0], full_output=1);
     elif num_dims == 2:
       ret = dblquad(f, l_limit[0], u_limit[0], lambda x: l_limit[1],
-                    lambda x: u_limit[1]);
+                    lambda x: u_limit[1], full_output=1);
     return ret[0];
 

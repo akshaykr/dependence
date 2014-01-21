@@ -61,7 +61,7 @@ class TrigDensity(object):
         while len(x) < n:
             proposal = np.matrix(np.random.uniform(0, 1, [n, self.d]))
             us = np.matrix(np.random.uniform(0,1,n)).T
-            to_retain = np.array(us < self.eval(proposal)).reshape(n,)
+            to_retain = np.array(us < self.eval(proposal)/2.0).reshape(n,)
             if x == []:
                 x = proposal[to_retain,:]
             else:
@@ -122,7 +122,7 @@ class TrigDensity(object):
         """
         data = np.array(data)
         assert data.shape[1] == 2
-        H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50)
+        H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50, normed=True)
         H.shape, xedges.shape, yedges.shape = ((50, 50), (51,), (51,))
         
         extent = [yedges[0], yedges[-1], xedges[-1], xedges[0]]
@@ -185,7 +185,7 @@ class UniTrigDensity(object):
         while len(x) < n:
             proposal = np.matrix(np.random.uniform(0, 1, [n, 1]))
             us = np.matrix(np.random.uniform(0,1,n)).T
-            to_retain = np.array(us < self.eval(proposal)).reshape(n,)
+            to_retain = np.array(us < self.eval(proposal)/2.0).reshape(n,)
             if x == []:
                 x = proposal[to_retain,:]
             else:
@@ -216,7 +216,7 @@ class UniTrigDensity(object):
         if ax==None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            ax.hist(data, bins=100)
+            ax.hist(data, bins=100, normed=True)
             plt.show()
         else:
             ax.hist(data, bins=100)
@@ -226,10 +226,9 @@ if __name__=='__main__':
     ax1 = fig.add_subplot(231, projection='3d')
     print "Constructing 2d Sobolev density"
     TD = TrigDensity(8,2,2)
-    print TD.coeffs
     TD.plot_surface(ax=ax1)
     print "Rejection Sampling 2d Sobolev density"
-    data = TD.sample(10000)
+    data = TD.sample(50000)
     ax2 = fig.add_subplot(232)
     TD.plot_fn_histogram(ax=ax2)
     ax3 = fig.add_subplot(233)

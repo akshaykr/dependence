@@ -1,7 +1,7 @@
 import numpy as np
-import density
-import kernels
+import density, helper, kernels
 import matplotlib.pyplot as plt
+
 
 class KDE(object):
 
@@ -21,25 +21,35 @@ class KDE(object):
         self.d = data.shape[1]
         self.h = self.n**(-1.0/(2*self.s+self.d))
 
-        ## TODO: what order am I supposed to use? s or \lfloor s \rfloor
-        self.kernel = kernels.kernel
+        self.kernel = lambda x, c: kernels.kernel(x, self.m, self.h, centre=c)
         
+    def eval2(self, pts):
+        """
+        Evaluate the kernel density estimator at a set of points x.
+        """
+        vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data[j,:] - pts, None) for j in range(self.n)], axis=0).T
+        return vals[0,:]
+
     def eval(self, pts):
         """
         Evaluate the kernel density estimator at a set of points x.
         """
-        t = pts.shape[0]
-        vals = []
-        for i in range(t):
-            vals.append(1.0/self.h**self.d*np.mean([self.kernel((self.data[j,:]-pts[i,:])/self.h, self.m, self.h) for j in range(self.n)]))
-        return vals
-    
+        vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
+        return vals.T[0,:]
+
+    def kde_error(self, coords, true_p, p_norm):
+        """
+        compute the error of this estimator in ell_p^p norm. 
+        """
+        vals = self.eval(coords)
+        truth = true_p.eval(coords).reshape(coords.shape[0],)
+        return 1.0/coords.shape[0]* np.linalg.norm(np.array(vals-truth)[0,:], ord=p_norm)**p_norm
 
 if __name__=='__main__':
     do_one_d = True
-    do_two_d = False
-    n = 5000
-    s = 2
+    do_two_d = True
+    n = 10000
+    s = 3
 
     if do_one_d:
         print "One dimensional example"
@@ -50,11 +60,11 @@ if __name__=='__main__':
         
         K = KDE(data, s)
         
-        pts = np.matrix(np.arange(0, 1.0, 0.01)).T
+        pts = np.matrix(np.arange(0, 1.0, 0.001)).T
         
         print "Evaluating KDE on %d points" % (pts.shape[0]) 
         vals = K.eval(pts)
-        
+
         fig = plt.figure(1, figsize=(10, 5))
         ax1 = fig.add_subplot(131)
         D.plot_fn(ax=ax1)
@@ -70,14 +80,14 @@ if __name__=='__main__':
         data = D.sample(n)
 
         K = KDE(data, s)
-        x = np.arange(0, 1, 0.1)
-        y = np.arange(0, 1, 0.1)
-        z = []
-        
+        t = 100
+        x = np.arange(0, 1, 1.0/t)
+        y = np.arange(0, 1, 1.0/t)
+        X,Y = np.meshgrid(x,y)
+        v = np.matrix(zip(X.reshape(t**2,), Y.reshape(t**2,)))
+
         print "Evaluating KDE on %d points" % (len(x)*len(y)) 
-        for i in x:
-            for j in y:
-                z.append(K.eval(np.matrix([[i,j]])))
+        z = K.eval(v)
         z = np.array(z)
         Z = z.reshape(len(x), len(y))
         
