@@ -3,7 +3,7 @@ from helper import *
 import density, kde, estimators
 import matplotlib.pyplot as plt
 
-def kde_rate_1D(D, ns, ps, iters=10):
+def kde_rate(D, ns, ps, iters=10):
     """
     Compute the kde_rate of convergence on the density D as a function on n.
     The rate will be computed in ell_p^p norm for each p
@@ -70,6 +70,56 @@ def plot_estimator_rate(ns, ms, vs, gamma):
     ax3.plot(ns, [-np.log(ms[i])/np.log(ns[i]) for i in range(len(ns))])
     ax3.set_xlabel("Number of samples (n)")
     ax3.set_ylabel("-log(error)/log(n)")
+    plt.show()
+
+def plot_from_file(file, gamma):
+    f = open(file).readlines()
+    ns = [float(x) for x in f[0].split(" ")[1:]]
+    ms = [float(x) for x in f[1].split(" ")[1:]]
+    vs = [float(x) for x in f[2].split(" ")[1:]]
+
+    plot_estimator_rate(ns, ms, vs, gamma)
+
+def plot_vs_s(est_type, ss, p=2, rescaler=None):
+    ns = []
+    ms = []
+    vs = []
+    if est_type == "kde":
+        for s in ss:
+            f = open("./data/%s_error_d=1_p=%d_s=%s.out" % (est_type, p, s)).readlines()
+            ns.append([float(x) for x in f[0].split(" ")[1:]])
+            ms.append([float(x) for x in f[1].split(" ")[1:]])
+            vs.append([float(x) for x in f[2].split(" ")[1:]])
+    else:
+        for s in ss:
+            f = open("./data/%s_error_d=1_s=%s.out" % (est_type, s)).readlines()
+            ns.append([float(x) for x in f[0].split(" ")[1:]])
+            ms.append([float(x) for x in f[1].split(" ")[1:]])
+            vs.append([float(x) for x in f[2].split(" ")[1:]])
+    
+    fig = plt.figure(figsize=(10, 10))
+    if rescaler != None:
+        fig2 = plt.figure(figsize=(10,10))
+    fig3 = plt.figure(figsize=(10,10))
+
+    for i in range(4):
+        for j in range(4):
+            if len(ns[0]) <= 4*i+j:
+                break
+            ax = fig.add_subplot(4,4,4*i+j+1)
+            ax.errorbar(ss, [ms[k][4*i+j] for k in range(len(ss))], [vs[k][4*i+j] for k in range(len(ss))])
+            ax.set_xlabel("s for n = %d" % (int(ns[0][4*i+j])))
+            ax.set_ylabel("Error")
+            if rescaler != None:
+                ax = fig2.add_subplot(4,4,4*i+j+1)
+                ax.plot(ss, [ms[k][4*i+j]*np.power(ns[0][4*i+j], rescaler(ss[k])) for k in range(len(ss))])
+                ax.set_xlabel("s for n = %d" % (int(ns[0][4*i+j])))
+                ax.set_ylabel("Error*n^{\gamma}")
+            ax = fig3.add_subplot(4,4,4*i+j+1)
+            ax.plot(ss, [-1.0*np.log(ms[k][4*i+j])/np.log(ns[0][4*i+j]) for k in range(len(ss))])
+            ax.set_xlabel("s for n = %d" % (int(ns[0][4*i+j])))
+            ax.set_ylabel("-log(Error)/log(n)")
+            
     plt.show()
 
 # To rescale a rate of n^{-\gamma}, plot ns versus 

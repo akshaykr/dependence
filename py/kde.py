@@ -12,10 +12,10 @@ class KDE(object):
         """
         self.s = s
         self.m = None
-#         if int(self.s) == self.s:
-#             self.m = self.s-1
-#         else:
-        self.m = int(self.s)
+        if int(self.s) == self.s:
+            self.m = self.s
+        else:
+            self.m = int(self.s)+1
         self.data = data
         self.n = data.shape[0]
         self.d = data.shape[1]

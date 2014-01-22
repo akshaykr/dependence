@@ -197,6 +197,9 @@ class QuadraticEstimator(PluginEstimator):
 
         return np.real(plugin_est + theta_p_21 + theta_q_21 + theta_p_22 + theta_q_22 + theta_pq_22 + C2);
 
+    def quad_term_estimator(self, fn, data1, data2):
+        np.mean(self.comp_exp(k, data1) * np.mean(np.array))
+
     def comp_exp(self, fn, x):
         return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T)
 
