@@ -11,15 +11,14 @@ def kde_rate_1D(D, ns, ps, iters=10):
 
     ms = [[] for p in ps]
     vs = [[] for p in ps]
-    pts = np.matrix(np.arange(0, 1, 0.001)).T
 
     for n in ns:
         sub_scores = [[] for p in ps]
         for i in range(iters):
             data = D.sample(n)
             K = kde.KDE(data, D.s)
-            [sub_scores[i].append(K.kde_error(pts, D, ps[i])) for i in range(len(ps))]
-        print sub_scores
+            [sub_scores[i].append(K.kde_error(D, ps[i])) for i in range(len(ps))]
+        print "n = %d " % n + " ".join([str(ps[i]) + " = %0.2f" % np.mean(sub_scores[i]) for i in range(len(ps))])
         [ms[i].append(np.mean(sub_scores[i])) for i in range(len(ps))]
         [vs[i].append(np.std(sub_scores[i])) for i in range(len(ps))]
     

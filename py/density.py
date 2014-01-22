@@ -39,14 +39,14 @@ class TrigDensity(object):
         total = 0
         f = lattice.lattice(self.d, limit=None)
         f.next()
-        while total <= self.L:
+        while total <= self.L :
             curr = np.matrix(f.next())
-            new_coeff = np.random.normal(0, 0.1)
+            new_coeff = np.random.uniform(-0.1, 0.1)
             coeffs.append(new_coeff)
             fns.append(curr)
-            total += new_coeff**2 * np.sum([curr[i,0]**(2*self.s) for i in range(curr.shape[0])])
-        self.coeffs = coeffs
-        self.fns = fns
+            total += new_coeff**2 * np.sum([np.abs(curr[i,0])**(2*self.s) for i in range(curr.shape[0])])
+        self.coeffs = coeffs[0:len(coeffs)-1]
+        self.fns = fns[0:len(fns)-1]
 
     def eval(self, pts):
         vals =  linear_combination(self.coeffs, self.fns, pts)
@@ -78,12 +78,10 @@ class TrigDensity(object):
         z = []
         x = np.arange(0, 1, 0.01)
         y = np.arange(0, 1, 0.01)
-        for i in x:
-            for j in y:
-                z.append(self.eval(np.matrix([[i,j]]))[0])
-        z = np.array(z)
-        Z = np.abs(z.reshape(len(x), len(y)))
         X,Y = np.meshgrid(x,y)
+        v = np.matrix(zip(X.reshape(len(x)*len(y),), Y.reshape(len(x)*len(y),)))
+        z = np.array(self.eval(v))
+        Z = np.abs(z.reshape(len(x), len(y)))
         if ax == None:
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')
@@ -101,12 +99,10 @@ class TrigDensity(object):
         assert self.d == 2, "plot_fn_histogram is only available for 2-d densities"
         x = np.arange(0, 1, 0.01)
         y = np.arange(0, 1, 0.01)
-        z = []
-        for i in x:
-            for j in y:
-                z.append(self.eval(np.matrix([[i,j]]))) ## linear_combination(self.coeffs, self.fns, [i,j]))
-        z = np.array(z)
-        Z = np.real(z.reshape(len(x), len(y)))
+        X,Y = np.meshgrid(x,y)
+        v = np.matrix(zip(X.reshape(len(x)*len(y),), Y.reshape(len(x)*len(y),)))
+        z = np.array(self.eval(v))
+        Z = np.abs(z.reshape(len(x), len(y)))
         if ax == None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
@@ -158,10 +154,10 @@ class UniTrigDensity(object):
         total = 0
         curr = 2
         while total <= self.L:
-            new_coeff = np.random.normal(0, 0.1)
+            new_coeff = np.random.uniform(-0.1, 0.1)
             coeffs.append(new_coeff)
             fns.append(np.matrix([[curr]]))
-            total += new_coeff**2 * curr**(2*self.s)
+            total += new_coeff**2 * np.abs(curr)**(2*self.s)
 #             if curr % 2 == 0:
 #                 fns.append(lambda x: np.sqrt(2) * np.cos(np.pi*curr*x))
 
@@ -169,8 +165,8 @@ class UniTrigDensity(object):
 #                 fns.append(lambda x: np.sqrt(2) * np.sin(np.pi*(curr-1)*x))
 #                 total += new_coeff**2 * (curr-1)**(2*self.s)
             curr += 1
-        self.coeffs = coeffs
-        self.fns = fns
+        self.coeffs = coeffs[0:len(coeffs)-1]
+        self.fns = fns[0:len(fns)-1]
 
     def eval(self, pts):
         vals =  linear_combination(self.coeffs, self.fns, pts)

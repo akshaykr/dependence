@@ -12,10 +12,10 @@ class KDE(object):
         """
         self.s = s
         self.m = None
-        if int(self.s) == self.s:
-            self.m = self.s-1
-        else:
-            self.m = int(self.s)
+#         if int(self.s) == self.s:
+#             self.m = self.s-1
+#         else:
+        self.m = int(self.s)
         self.data = data
         self.n = data.shape[0]
         self.d = data.shape[1]
@@ -37,10 +37,19 @@ class KDE(object):
         vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
         return vals.T[0,:]
 
-    def kde_error(self, coords, true_p, p_norm):
+    def kde_error(self, true_p, p_norm, fast=True):
         """
         compute the error of this estimator in ell_p^p norm. 
         """
+        if fast:
+            integrator = lambda x,y,z: helper.fast_integration(x,y,z)
+        else:
+            integrator = lambda x,y,z: helper.numeric_integration(x,y,z)
+        fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
+        return integrator(fn_handle, [0 for i in range(self.d)], [1 for i in range(self.d)])
+
+    def kde_error2(self, true_p, p_norm):
+        coords = np.matrix(np.arange(0, 1, 0.01)).T
         vals = self.eval(coords)
         truth = true_p.eval(coords).reshape(coords.shape[0],)
         return 1.0/coords.shape[0]* np.linalg.norm(np.array(vals-truth)[0,:], ord=p_norm)**p_norm
