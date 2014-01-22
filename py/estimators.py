@@ -34,11 +34,9 @@ class PluginEstimator(object):
                                           [0], [1])
         if self.dim == 2:
             if fast:
-                val = fast_integration(lambda x,y: np.multiply(
-                        np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                             1)), self.alpha),
-                        np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                             1)), self.beta)),
+                val = fast_integration(lambda x: np.multiply(
+                        np.power(self.Kp.eval(np.matrix(x)), self.alpha),
+                        np.power(self.Kq.eval(np.matrix(x)), self.beta)),
                                           [0,0], [1,1])
             else:
                 val = numeric_integration(lambda x,y: np.multiply(
@@ -210,22 +208,34 @@ class Truth(object):
         self.beta = beta
         self.dim = self.p.d
 
-    def eval(self):
+    def eval(self, fast=False):
         """
         Evaluate the true divergence by performing numeric integration on the n^d grid of points.
         """
-        if self.dim == 1:
-            val = numeric_integration(lambda x: np.multiply(
-                    np.power(self.p.eval(np.matrix(x)), self.alpha), 
-                    np.power(self.q.eval(np.matrix(x)), self.beta)),
-                    [0], [1])
-        if self.dim == 2:
-            val = numeric_integration(lambda x,y: np.multiply(
-                    np.power(self.p.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                          1)), self.alpha),
-                    np.power(self.q.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                          1)), self.beta)),
-                                      [0,0], [1,1])
+        if fast:
+            if self.dim == 1:
+                val = fast_integration(lambda x: np.multiply(
+                        np.power(self.p.eval(np.matrix(x)), self.alpha), 
+                        np.power(self.q.eval(np.matrix(x)), self.beta)),
+                                          [0], [1])
+            if self.dim == 2:
+                val = fast_integration(lambda x: np.multiply(
+                        np.power(self.p.eval(np.matrix(x)), self.alpha),
+                        np.power(self.q.eval(np.matrix(x)), self.beta)),
+                                          [0,0], [1,1])
+        if not fast:
+            if self.dim == 1:
+                val = numeric_integration(lambda x: np.multiply(
+                        np.power(self.p.eval(np.matrix(x)), self.alpha), 
+                        np.power(self.q.eval(np.matrix(x)), self.beta)),
+                                          [0], [1])
+            if self.dim == 2:
+                val = numeric_integration(lambda x,y: np.multiply(
+                        np.power(self.p.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                            1)), self.alpha),
+                        np.power(self.q.eval(np.concatenate((np.matrix(x), np.matrix(y)),
+                                                            1)), self.beta)),
+                                          [0,0], [1,1])
         return val
         
 

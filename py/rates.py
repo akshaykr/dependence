@@ -33,7 +33,7 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
     ms = []
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, beta)
-    truth = T.eval()
+    truth = T.eval(fast=fast)
 
     for n in ns:
         sub_scores = []
