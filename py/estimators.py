@@ -116,8 +116,8 @@ class QuadraticEstimator(PluginEstimator):
     def __init__(self, pdata, qdata, alpha, beta, s):
         # Shuffle the data and split it into 2 for density estimation and
         # estimating the other parts.
-        np.random.shuffle(pdata);
-        np.random.shuffle(qdata);
+#         np.random.shuffle(pdata);
+#         np.random.shuffle(qdata);
         num_pdata = pdata.shape[0];
         num_qdata = qdata.shape[0];
         # Call the previous constructor
@@ -180,31 +180,39 @@ class QuadraticEstimator(PluginEstimator):
         theta_pq_22 *= 0.5 * self.alpha * self.beta
 
         # theta^p_{2,2} = 1/2 \alpha(\alpha-1) \int \phat^{\alpha-2}\qhat^\beta p^2
-        ## TODO: Not using the U-statistic here because I don't think it will be that much better.
-        ## Instead I'm using a related estimator as above
-        theta_p_22 = 0.5*self.alpha*(self.alpha-1) * np.sum([
-                np.mean(self.comp_exp(fn,self.p_est_data)) *
-                np.mean(np.array(self.comp_exp(fn, self.p_est_data)) *
-                        np.array(np.power(self.Kp.eval(self.p_est_data), self.alpha-2)) *
-                        np.array(np.power(self.Kq.eval(self.p_est_data), self.beta)))
-                for fn in lattice.lattice(self.dim, self.m)])
-        
+        theta_p_22 = 0.5*self.alpha*(self.alpha-1) * self.quad_term_slow(
+            lambda x: np.array(np.power(self.Kp.eval(x), self.alpha-2)) * np.array(np.power(self.Kq.eval(x), self.beta)),
+            self.p_est_data)
 
         # theta^q_{2,2} = 1/2 \beta(\beta-1) \int \phat^{\alpha}\qhat^{\beta-2} q^2
-        theta_q_22 = 0.5 * self.beta*(self.beta-1) * np.sum([
-                np.mean(self.comp_exp(fn,self.q_est_data)) *
-                np.mean(np.array(self.comp_exp(fn, self.q_est_data)) * 
-                        np.array(np.power(self.Kp.eval(self.q_est_data), self.alpha)) * 
-                        np.array(np.power(self.Kq.eval(self.q_est_data), self.beta-2)))
-                for fn in lattice.lattice(self.dim, self.m)])
+        theta_q_22 = 0.5 * self.beta*(self.beta-1) * self.quad_term_slow(
+            lambda x: np.array(np.power(self.Kp.eval(x), self.alpha)) * np.array(np.power(self.Kq.eval(x), self.beta-2)),
+            self.q_est_data)
 
         return np.real(plugin_est + theta_p_21 + theta_q_21 + theta_p_22 + theta_q_22 + theta_pq_22 + C2);
 
-    def quad_term_estimator(self, fn, data1, data2):
-        np.mean(self.comp_exp(k, data1) * np.mean(np.array))
+    def quad_term_slow(self, fn, data):
+        n = data.shape[0]
+        total = 0.0
+        for k in lattice.lattice(self.dim, self.m):
+            for i in range(n):
+                for j in range(n):
+                    if j != i:
+                        total += self.comp_exp(k, data[i,:])*self.comp_exp(k, data[j,:])*fn(data[j,:])
+        next = 0.0
+        for k in lattice.lattice(self.dim, self.m):
+            for kp in lattice.lattice(self.dim, self.m):
+                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
+                                      [0 for t in range(self.dim)], [1 for t in range(self.dim)])
+                for i in range(n):
+                    for j in range(n):
+                        if j != i:
+                            next += bi*self.comp_exp(k, data[i,:])*self.comp_exp(kp, data[j,:])
+
+        return 2.0*total/(n*(n-1)) - 1.0*next/(n*(n-1))
 
     def comp_exp(self, fn, x):
-        return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T)
+        return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
 
 class Truth(object):
     def __init__(self, p, q, alpha, beta):

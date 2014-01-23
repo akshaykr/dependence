@@ -35,8 +35,9 @@ class KDE(object):
         Evaluate the kernel density estimator at a set of points x.
         """
         vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
-        vals = np.maximum(vals, np.matrix(0.01*np.ones(vals.shape)))
-        return vals.T[0,:]
+        vals = np.maximum(vals, np.matrix(0.5*np.ones(vals.shape)))
+        return vals
+#         return vals.T[0,:]
 
     def kde_error(self, true_p, p_norm, fast=True):
         """

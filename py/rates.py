@@ -2,6 +2,7 @@ import numpy as np
 from helper import *
 import density, kde, estimators, histogram
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 
 def kde_rate(D, ns, ps, iters=10):
     """
@@ -49,6 +50,21 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
     return (ns, ms, vs)
 
+def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
+    ms = []
+    vs = []
+    T = fast_integration(lambda x: np.array(Dp.eval(x))**2, [0], [1])
+    for n in ns:
+        sub_scores = []
+        for i in range(iters):
+            pdata = Dp.sample(n)
+            Q = estimators.QuadraticEstimator(pdata, pdata, 0.5, 0.5, Dp.s)
+            val = Q.quad_term_slow(lambda x: x, pdata)
+            sub_scores.append(np.abs(val-T))
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
 
 def plot_estimator_rate(ns, ms, vs, gamma):
     """
@@ -62,6 +78,7 @@ def plot_estimator_rate(ns, ms, vs, gamma):
     ax1.errorbar(ns, ms, vs)
     ax1.set_xlabel("Number of samples (n)")
     ax1.set_ylabel("Error |That - T|")
+    ax1.set_xscale('log')
     ax2 = fig.add_subplot(132)
     ax2.plot(ns, [ms[i]*ns[i]**gamma for i in range(len(ns))])
     ax2.set_xlabel("Number of samples (n)")
@@ -107,7 +124,8 @@ def plot_vs_s(est_type, ss, p=2, rescaler=None):
             if len(ns[0]) <= 4*i+j:
                 break
             ax = fig.add_subplot(4,4,4*i+j+1)
-            ax.errorbar(ss, [ms[k][4*i+j] for k in range(len(ss))], [vs[k][4*i+j] for k in range(len(ss))])
+#             ax.errorbar(ss, [ms[k][4*i+j] for k in range(len(ss))], [vs[k][4*i+j] for k in range(len(ss))])
+            ax.plot(ss, [ms[k][4*i+j] for k in range(len(ss))])
             ax.set_xlabel("s for n = %d" % (int(ns[0][4*i+j])))
             ax.set_ylabel("Error")
             if rescaler != None:
@@ -121,6 +139,49 @@ def plot_vs_s(est_type, ss, p=2, rescaler=None):
             ax.set_ylabel("-log(Error)/log(n)")
             
     plt.show()
+
+def plot_vs_n(est_type, ss):
+    ns = []
+    ms = []
+    vs = []
+    if est_type == "kde":
+        for s in ss:
+            f = open("./data/%s_error_d=1_p=%d_s=%s.out" % (est_type, p, s)).readlines()
+            ns.append([float(x) for x in f[0].split(" ")[1:]])
+            ms.append([float(x) for x in f[1].split(" ")[1:]])
+            vs.append([float(x) for x in f[2].split(" ")[1:]])
+    else:
+        for s in ss:
+            f = open("./data/%s_error_d=1_s=%s.out" % (est_type, s)).readlines()
+            ns.append([float(x) for x in f[0].split(" ")[1:]])
+            ms.append([float(x) for x in f[1].split(" ")[1:]])
+            vs.append([float(x) for x in f[2].split(" ")[1:]])
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(111)
+    lines = [ax.plot(ns[i], ms[i]) for i in range(len(ss))]
+    ax.legend(lines, ["s = %s" % (str(s)) for s in ss], prop=font_manager.FontProperties(size=14), loc=1)
+    ax.set_xlabel("n")
+    ax.set_ylabel("Error")
+    ax.set_xscale("log")
+
+def compare(s):
+    est_types = ["plugin", "linear"]
+    ns = []
+    ms = []
+    vs = []
+    for est_type in est_types:
+        f = open("./data/%s_error_d=1_s=%s.out" % (est_type, s)).readlines()
+        ns.append([float(x) for x in f[0].split(" ")[1:]])
+        ms.append([float(x) for x in f[1].split(" ")[1:]])
+        vs.append([float(x) for x in f[2].split(" ")[1:]])
+    fig = plt.figure(figsize=(5, 5))
+    ax = fig.add_subplot(111)
+    lines = [ax.plot(ns[i], ms[i]) for i in range(len(est_types))]
+    ax.legend(lines, ["%s" % (est_type) for est_type in est_types], prop=font_manager.FontProperties(size=14), loc=1)
+    ax.set_xlabel("n")
+    ax.set_ylabel("Error")
+    ax.set_xscale("log")
+
 
 # To rescale a rate of n^{-\gamma}, plot ns versus 
 # [np.exp(np.log(ms[i]) + gamma*np.log(ns[i])) for i in range(len(ns))]

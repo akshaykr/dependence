@@ -19,7 +19,7 @@ def numeric_integration(f, l_limit, u_limit):
 def fast_integration(f, l_limit, u_limit):
     num_dims = len(l_limit)
     if num_dims == 1:
-        pts = np.matrix(np.arange(l_limit[0], u_limit[0], 0.01)).T
+        pts = np.matrix(np.arange(l_limit[0], u_limit[0], 0.001)).T
         return np.mean(f(pts))
 
     if num_dims == 2:
