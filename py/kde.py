@@ -19,7 +19,7 @@ class KDE(object):
         self.data = data
         self.n = data.shape[0]
         self.d = data.shape[1]
-        self.h = self.n**(-1.0/(2*self.s+self.d))
+        self.h = 0.05*np.power(self.n, -1.0/(2*self.s+self.d))
 
         self.kernel = lambda x, c: kernels.kernel(x, self.m, self.h, centre=c)
         
@@ -47,7 +47,7 @@ class KDE(object):
         else:
             integrator = lambda x,y,z: helper.numeric_integration(x,y,z)
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
-        return integrator(fn_handle, [0 for i in range(self.d)], [1 for i in range(self.d)])
+        return integrator(fn_handle, [0.1 for i in range(self.d)], [0.9 for i in range(self.d)])
 
     def kde_error2(self, true_p, p_norm):
         coords = np.matrix(np.arange(0, 1, 0.01)).T

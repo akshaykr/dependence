@@ -28,7 +28,7 @@ def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=20, fast=True):
         f.close()
     return
 
-def kde_rate(ns, ss, d=1, iters=20, fast=True):
+def kde_rate(ns, ss, d=1, iters=50, fast=True):
     ps = [1,2,3]
     for s in ss:
         print "s = %s" % (str(s))
@@ -48,7 +48,7 @@ def kde_rate(ns, ss, d=1, iters=20, fast=True):
 
 if __name__=="__main__":
     ss = np.arange(0.25, 4.1, 0.25)
-    ns = np.logspace(1, 3, 10)
+    ns = np.logspace(1, 2.3, 20)
 
 #     estimator_rate("plugin", ns, ss, 0.5, 0.5)
 #     estimator_rate("linear", ns, ss, 0.5, 0.5)

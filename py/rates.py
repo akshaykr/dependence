@@ -1,6 +1,6 @@
 import numpy as np
 from helper import *
-import density, kde, estimators
+import density, kde, estimators, histogram
 import matplotlib.pyplot as plt
 
 def kde_rate(D, ns, ps, iters=10):
