@@ -2,7 +2,7 @@ import numpy as np
 import density, estimators, rates, helper
 
 
-def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=20, fast=True):
+def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
     E = None
     if est_type == "plugin":
         E = estimators.PluginEstimator
@@ -48,8 +48,8 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
 
 if __name__=="__main__":
     ss = np.arange(0.25, 4.1, 0.25)
-    ns = np.logspace(1, 2.3, 20)
+    ns = np.logspace(1, 3.7, 30)
 
-#     estimator_rate("plugin", ns, ss, 0.5, 0.5)
-#     estimator_rate("linear", ns, ss, 0.5, 0.5)
+    estimator_rate("plugin", ns, ss, 0.5, 0.5)
+    estimator_rate("linear", ns, ss, 0.5, 0.5)
     kde_rate(ns, ss)

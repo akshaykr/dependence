@@ -19,7 +19,7 @@ class KDE(object):
         self.data = data
         self.n = data.shape[0]
         self.d = data.shape[1]
-        self.h = 0.05*np.power(self.n, -1.0/(2*self.s+self.d))
+        self.h = np.power(self.n, -1.0/(2*self.s+self.d))
 
         self.kernel = lambda x, c: kernels.kernel(x, self.m, self.h, centre=c)
         

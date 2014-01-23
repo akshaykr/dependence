@@ -3,6 +3,9 @@ import kde, density, lattice
 import itertools
 from helper import *
 
+lb = 0.1
+ub = 0.9
+
 class PluginEstimator(object):
     """
     Plugin estimator for functionals of the form \int
@@ -26,25 +29,25 @@ class PluginEstimator(object):
                 val = fast_integration(lambda x: np.multiply(
                     np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
                     np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                                       [0], [1])
+                                       [lb], [ub])
             else:
                 val = numeric_integration(lambda x: np.multiply(
                         np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
                         np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                                          [0], [1])
+                                          [lb], [ub])
         if self.dim == 2:
             if fast:
                 val = fast_integration(lambda x: np.multiply(
                         np.power(self.Kp.eval(np.matrix(x)), self.alpha),
                         np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                                          [0,0], [1,1])
+                                          [lb,lb], [ub,ub])
             else:
                 val = numeric_integration(lambda x,y: np.multiply(
                         np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
                                                              1)), self.alpha),
                         np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
                                                              1)), self.beta)),
-                                          [0,0], [1,1])
+                                          [lb,lb], [ub,ub])
         return val
 
 
@@ -80,8 +83,8 @@ class LinearEstimator(PluginEstimator):
           C1_fn_handle = lambda x: np.multiply( 
             np.power(self.Kp.eval(np.matrix(x)), self.alpha),
             np.power(self.Kq.eval(np.matrix(x)), self.beta) );
-          l_limit = [0];
-          u_limit = [1];
+          l_limit = [lb];
+          u_limit = [ub];
 
         elif self.dim == 2:
           C1_fn_handle = lambda x,y : np.multiply( 
@@ -89,8 +92,8 @@ class LinearEstimator(PluginEstimator):
                                    1) ), self.alpha),
             np.power(self.Kq.eval( np.concatenate((np.matrix(x), np.matrix(y)),
                                    1) ), self.beta) );
-          l_limit = [0, 0];
-          u_limit = [1, 1];
+          l_limit = [lb, lb];
+          u_limit = [ub, ub];
         C1 = -(self.alpha + self.beta) * integrator(
                                            C1_fn_handle, l_limit, u_limit);
 
@@ -141,8 +144,8 @@ class QuadraticEstimator(PluginEstimator):
           C2_fn_handle = lambda x: np.multiply( 
             np.power(self.Kp.eval(np.matrix(x)), self.alpha),
             np.power(self.Kq.eval(np.matrix(x)), self.beta) );
-          l_limit = [0];
-          u_limit = [1];
+          l_limit = [lb];
+          u_limit = [ub];
 
         elif self.dim == 2:
           C2_fn_handle = lambda x,y : np.multiply( 
@@ -150,8 +153,8 @@ class QuadraticEstimator(PluginEstimator):
                                    1) ), self.alpha),
             np.power(self.Kq.eval( np.concatenate((np.matrix(x), np.matrix(y)),
                                    1) ), self.beta) );
-          l_limit = [0, 0];
-          u_limit = [1, 1];
+          l_limit = [lb, lb];
+          u_limit = [ub, ub];
         C2 = 0.5 * (self.alpha*(self.alpha-1) + self.alpha*self.beta + self.beta*(self.beta-1)) * integrator(C2_fn_handle, l_limit, u_limit);
 
         # theta^p_{2,1} = \alpha(2-\alpha+\beta/2) \EE[\phat^{\alpha-1}(X)\qhat^\beta(X)]
@@ -220,25 +223,25 @@ class Truth(object):
                 val = fast_integration(lambda x: np.multiply(
                         np.power(self.p.eval(np.matrix(x)), self.alpha), 
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
-                                          [0], [1])
+                                          [lb], [ub])
             if self.dim == 2:
                 val = fast_integration(lambda x: np.multiply(
                         np.power(self.p.eval(np.matrix(x)), self.alpha),
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
-                                          [0,0], [1,1])
+                                          [lb,lb], [ub,ub])
         if not fast:
             if self.dim == 1:
                 val = numeric_integration(lambda x: np.multiply(
                         np.power(self.p.eval(np.matrix(x)), self.alpha), 
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
-                                          [0], [1])
+                                          [lb], [ub])
             if self.dim == 2:
                 val = numeric_integration(lambda x,y: np.multiply(
                         np.power(self.p.eval(np.concatenate((np.matrix(x), np.matrix(y)),
                                                             1)), self.alpha),
                         np.power(self.q.eval(np.concatenate((np.matrix(x), np.matrix(y)),
                                                             1)), self.beta)),
-                                          [0,0], [1,1])
+                                          [lb,lb], [ub,ub])
         return val
         
 
@@ -274,4 +277,4 @@ if __name__=='__main__':
         pl_scores.append(pl_sub_scores)
         lin_scores.append(lin_sub_scores)
     
-    print scores
+    print (pl_scores, lin_scores)
