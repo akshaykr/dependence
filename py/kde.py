@@ -73,9 +73,9 @@ class KDE(object):
 
 if __name__=='__main__':
     do_one_d = True
-    do_two_d = True
+    do_two_d = False #True
     n = 10000
-    s = 3
+    s = 2
 
     if do_one_d:
         print "One dimensional example"
@@ -94,10 +94,12 @@ if __name__=='__main__':
         fig = plt.figure(1, figsize=(10, 5))
         ax1 = fig.add_subplot(131)
         D.plot_fn(ax=ax1)
+        plt.axis((0,1,0, 1.25));
         ax2 = fig.add_subplot(132)
         D.plot_data_histogram(data, ax=ax2)
         ax3 = fig.add_subplot(133)
         ax3.plot(pts, vals)
+        plt.axis((0,1,0, 1.25));
 
     if do_two_d:
         print "Two dimensional example"

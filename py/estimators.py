@@ -20,7 +20,7 @@ class PluginEstimator(object):
         self.beta = beta
         self.s = s
         
-    def eval(self, fast=False):
+    def eval(self, fast=True):
         """
         Evaluate the estimator by performing numeric integration on the n^d grid of points.
         """
@@ -30,23 +30,11 @@ class PluginEstimator(object):
                     np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
                     np.power(self.Kq.eval(np.matrix(x)), self.beta)),
                                        [lb], [ub])
-            else:
-                val = numeric_integration(lambda x: np.multiply(
-                        np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
-                        np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                                          [lb], [ub])
         if self.dim == 2:
             if fast:
                 val = fast_integration(lambda x: np.multiply(
                         np.power(self.Kp.eval(np.matrix(x)), self.alpha),
                         np.power(self.Kq.eval(np.matrix(x)), self.beta)),
-                                          [lb,lb], [ub,ub])
-            else:
-                val = numeric_integration(lambda x,y: np.multiply(
-                        np.power(self.Kp.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                             1)), self.alpha),
-                        np.power(self.Kq.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                             1)), self.beta)),
                                           [lb,lb], [ub,ub])
         return val
 
@@ -69,18 +57,13 @@ class LinearEstimator(PluginEstimator):
         self.p_est_data = pdata[num_pdata/2 + 1: num_pdata, :];
         self.q_est_data = qdata[num_qdata/2 + 1: num_qdata, :];
 
-    def eval(self, fast=False):
+    def eval(self, fast=True):
         # Plugin estimator
         c1 = 1 - self.alpha - self.beta
         if c1 != 0:
             plugin_est = c1 * super(LinearEstimator, self).eval(fast=fast);
         else:
             plugin_est = 0.0
-
-        if fast:
-            integrator = lambda x, y, z: fast_integration(x,y,z)
-        else:
-            integrator = lambda x, y, z: numeric_integration(x,y,z)
 
         # theta^p_{1,1} = alpha * E_{x~p}[p0(x)^(alpha-1) * q0(x)^beta]
         theta_p_11 = self.alpha * np.mean(
@@ -101,8 +84,8 @@ class QuadraticEstimator(PluginEstimator):
     def __init__(self, pdata, qdata, alpha, beta, s):
         # Shuffle the data and split it into 2 for density estimation and
         # estimating the other parts.
-#         np.random.shuffle(pdata);
-#         np.random.shuffle(qdata);
+        np.random.shuffle(pdata);
+        np.random.shuffle(qdata);
         num_pdata = pdata.shape[0];
         num_qdata = qdata.shape[0];
         # Call the previous constructor
@@ -123,11 +106,6 @@ class QuadraticEstimator(PluginEstimator):
         else:
             plugin_est = 0.0
 
-        if fast:
-            integrator = lambda x, y, z: fast_integration(x,y,z)
-        else:
-            integrator = lambda x, y, z: numeric_integration(x,y,z)
-
         # theta^p_{2,1} = \alpha(2-\alpha-\beta) \EE[\phat^{\alpha-1}(X)\qhat^\beta(X)]
         theta_p_21 = self.alpha*(2-self.alpha-self.beta)*np.mean(
             np.multiply(np.power(self.Kp.eval(self.p_est_data), self.alpha-1),
@@ -135,7 +113,7 @@ class QuadraticEstimator(PluginEstimator):
             )
 
         # theta^q_{2,1} = \beta (2 -\beta-\alpha) \EE[\phat^\alpha(X)\qhat^{\beta-1}(X)]
-        theta_q_21 = self.beta*(2-self.beta-self.alpha/2)*np.mean(
+        theta_q_21 = self.beta*(2-self.beta-self.alpha)*np.mean(
             np.multiply(np.power(self.Kp.eval(self.q_est_data), self.alpha),
                         np.power(self.Kq.eval(self.q_est_data), self.beta-1))
             )
@@ -187,7 +165,7 @@ class QuadraticEstimator(PluginEstimator):
                 for j in range(n):
                     if j != i:
                         total += self.comp_exp(k, data[i,:])*self.comp_exp(k, data[j,:])*fn(data[j,:])
-        next = 0.0
+        term2 = 0.0
         for k in lattice.lattice(self.dim, self.m):
             for kp in lattice.lattice(self.dim, self.m):
                 bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
@@ -195,10 +173,10 @@ class QuadraticEstimator(PluginEstimator):
                 for i in range(n):
                     for j in range(n):
                         if j != i:
-                            next += bi*self.comp_exp(k, data[i,:])*self.comp_exp(kp, data[j,:])
+                            term2 += bi*self.comp_exp(k, data[i,:])*self.comp_exp(kp, data[j,:])
 
-#         print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
-        return np.real(2.0*total/(n*(n-1)) - 1.0*next/(n*(n-1)))
+#         print (np.real(2.0*total/(n*(n-1))), np.real(term2/(n*(n-1))))
+        return np.real(2.0*total/(n*(n-1)) - 1.0*term2/(n*(n-1)))
 
     def quad_term_fast(self, fn, data):
         n = data.shape[0]
@@ -208,16 +186,16 @@ class QuadraticEstimator(PluginEstimator):
             sub2 = sub1*np.array(fn(data))
             total += np.sum((np.sum(sub2) - sub2) * sub1)
 
-        next = 0.0
+        term2 = 0.0
         for k in lattice.lattice(self.dim, self.m):
             for kp in lattice.lattice(self.dim, self.m):
                 bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
                                       [0 for t in range(self.dim)], [1 for t in range(self.dim)])
                 sub1 = np.array(self.comp_exp(k, data))
                 sub2 = np.array(self.comp_exp(kp, data))
-                next += np.sum(bi* sub1* (np.sum(sub2) - sub2))
-#         print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
-        return np.real(2.0*total/(n*(n-1))) - np.real(next/(n*(n-1)))
+                term2 += np.sum(bi* sub1* (np.sum(sub2) - sub2))
+#         print (np.real(2.0*total/(n*(n-1))), np.real(term2/(n*(n-1))))
+        return np.real(2.0*total/(n*(n-1))) - np.real(term2/(n*(n-1)))
 
     def comp_exp(self, fn, x):
         return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
@@ -230,7 +208,7 @@ class Truth(object):
         self.beta = beta
         self.dim = self.p.d
 
-    def eval(self, fast=False):
+    def eval(self, fast=True):
         """
         Evaluate the true divergence by performing numeric integration on the n^d grid of points.
         """
@@ -244,19 +222,6 @@ class Truth(object):
                 val = fast_integration(lambda x: np.multiply(
                         np.power(self.p.eval(np.matrix(x)), self.alpha),
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
-                                          [lb,lb], [ub,ub])
-        if not fast:
-            if self.dim == 1:
-                val = numeric_integration(lambda x: np.multiply(
-                        np.power(self.p.eval(np.matrix(x)), self.alpha), 
-                        np.power(self.q.eval(np.matrix(x)), self.beta)),
-                                          [lb], [ub])
-            if self.dim == 2:
-                val = numeric_integration(lambda x,y: np.multiply(
-                        np.power(self.p.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                            1)), self.alpha),
-                        np.power(self.q.eval(np.concatenate((np.matrix(x), np.matrix(y)),
-                                                            1)), self.beta)),
                                           [lb,lb], [ub,ub])
         return val
         

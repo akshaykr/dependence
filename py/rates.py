@@ -45,6 +45,8 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
             val = E.eval(fast=fast)
             sub_scores.append(np.abs(val-truth))
 
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
@@ -64,10 +66,32 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
             val2 = Q.quad_term_fast(lambda x: 1, pdata)
             print "truth = %0.3f, fast = %0.3f, slow = %0.3f" % (T, val2, val)
             sub_scores.append(np.abs(val-T))
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
     return (ns, ms, vs)
+
+def test_linear_functional(Dp, ns, iters=10, fast=True):
+  ms = [];
+  vs = [];
+  T = fast_integration(lambda x: np.array(Dp.eval(x)) * np.array(x), [0], [1]); 
+  print "True Expectation: %f\n" % (T)
+  for n in ns:
+    sub_scores = [];
+    for i in range(iters):
+      pdata = Dp.sample(n);
+      val = np.mean(pdata, axis=0)
+      print "truth = %0.3f, fast = %0.3f," % (T, val)
+      sub_scores.append(np.abs(val-T))
+    sub_scores.sort();
+    sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
+    ms.append(np.mean(sub_scores))
+    vs.append(np.std(sub_scores))
+    print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+  return (ns, ms, vs)
+  
 
 def test_bilinear_term_estimator(Dp, Dq, ns, iters=10, fast=True):
     ms = []
@@ -84,6 +108,8 @@ def test_bilinear_term_estimator(Dp, Dq, ns, iters=10, fast=True):
             val2 = Q.bilinear_term_fast(lambda x: np.matrix(np.ones((x.shape[0], 1))), pdata, qdata)
             print "truth = %0.3f, slow = %0.3f, fast = %0.3f" % (T, val2, val)
             sub_scores.append(np.abs(val-T))
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
@@ -218,6 +244,15 @@ def compare(s):
     ax.set_xlabel("n")
     ax.set_ylabel("Error")
     ax.set_xscale("log")
+
+
+if __name__ == '__main__' :
+  D = density.UniTrigDensity(2,2);
+  (ns, ms, vs) = test_linear_functional(D, np.logspace(1, 4, 20), iters = 50);
+  plot_estimator_rate(ns, ms, vs, 0.5)
+  (m, b) = plot_log_log(ns, ms)
+  print m, b
+  
 
 
 # To rescale a rate of n^{-\gamma}, plot ns versus 
