@@ -48,7 +48,7 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
 
 if __name__=="__main__":
     ss = np.arange(0.25, 4.1, 0.25)
-    ns = np.logspace(1, 3.7, 30)
+    ns = np.logspace(1, 3.0, 30)
 
     estimator_rate("plugin", ns, ss, 0.5, 0.5)
     estimator_rate("linear", ns, ss, 0.5, 0.5)

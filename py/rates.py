@@ -54,12 +54,13 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
     ms = []
     vs = []
     T = fast_integration(lambda x: np.array(Dp.eval(x))**2, [0], [1])
+    print "Truth: %f" % (T)
     for n in ns:
         sub_scores = []
         for i in range(iters):
             pdata = Dp.sample(n)
             Q = estimators.QuadraticEstimator(pdata, pdata, 0.5, 0.5, Dp.s)
-            val = Q.quad_term_slow(lambda x: x, pdata)
+            val = Q.quad_term_slow(lambda x: 1, pdata)
             sub_scores.append(np.abs(val-T))
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -89,13 +90,27 @@ def plot_estimator_rate(ns, ms, vs, gamma):
     ax3.set_ylabel("-log(error)/log(n)")
     plt.show()
 
-def plot_from_file(file, gamma):
+def plot_log_log(ns, ms, fig=None):
+    if fig == None:
+        fig = plt.figure(figsize=(5,5))
+    ax1 = fig.add_subplot(111)
+    ax1.plot(np.log(ns), np.log(ms))
+    [m,b] = np.polyfit(np.log(ns), np.log(ms), 1)
+    ax1.plot(np.arange(np.log(ns)[0]-1, np.log(ns)[-1]+1), [m*x + b for x in np.arange(np.log(ns)[0]-1, np.log(ns)[-1]+1)])
+    ax1.set_xlabel("log(n)")
+    ax1.set_ylabel("log(error)")
+    plt.show()
+    return (m,b)
+
+def plot_from_file(file, gamma, fig=None):
     f = open(file).readlines()
     ns = [float(x) for x in f[0].split(" ")[1:]]
     ms = [float(x) for x in f[1].split(" ")[1:]]
     vs = [float(x) for x in f[2].split(" ")[1:]]
 
     plot_estimator_rate(ns, ms, vs, gamma)
+    (m,b) = plot_log_log(ns, ms, fig=fig)
+    return (m,b)
 
 def plot_vs_s(est_type, ss, p=2, rescaler=None):
     ns = []

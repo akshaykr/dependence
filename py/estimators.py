@@ -3,8 +3,8 @@ import kde, density, lattice
 import itertools
 from helper import *
 
-lb = 0.1
-ub = 0.9
+lb = 0.0
+ub = 1.0
 
 class PluginEstimator(object):
     """
@@ -128,7 +128,7 @@ class QuadraticEstimator(PluginEstimator):
         self.q_den_data = qdata[0: num_qdata/2, :];
         self.p_est_data = pdata[num_pdata/2 + 1: num_pdata, :];
         self.q_est_data = qdata[num_qdata/2 + 1: num_qdata, :];
-        self.m = np.power(18*self.dim/s * np.power(2, 4.0*s/self.dim)* num_pdata**(-2), -float(self.dim)/(4*s+self.dim))
+        self.m = 2*np.power(18*self.dim/s * np.power(2, 4.0*s/self.dim)* num_pdata**(-2), -float(self.dim)/(4*s+self.dim))
 
     def eval(self, fast=True):
         # Plugin estimator
@@ -209,7 +209,8 @@ class QuadraticEstimator(PluginEstimator):
                         if j != i:
                             next += bi*self.comp_exp(k, data[i,:])*self.comp_exp(kp, data[j,:])
 
-        return 2.0*total/(n*(n-1)) - 1.0*next/(n*(n-1))
+        print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
+        return np.real(2.0*total/(n*(n-1)) - 1.0*next/(n*(n-1)))
 
     def comp_exp(self, fn, x):
         return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
