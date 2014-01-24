@@ -71,31 +71,16 @@ class LinearEstimator(PluginEstimator):
 
     def eval(self, fast=False):
         # Plugin estimator
-        plugin_est = super(LinearEstimator, self).eval(fast=fast);
+        c1 = 1 - self.alpha - self.beta
+        if c1 != 0:
+            plugin_est = c1 * super(LinearEstimator, self).eval(fast=fast);
+        else:
+            plugin_est = 0.0
 
         if fast:
             integrator = lambda x, y, z: fast_integration(x,y,z)
         else:
             integrator = lambda x, y, z: numeric_integration(x,y,z)
-
-        # C1 = - (alpha + beta) * int {p0(x)^alpha q0(x)^beta} dx
-        if self.dim == 1:
-          C1_fn_handle = lambda x: np.multiply( 
-            np.power(self.Kp.eval(np.matrix(x)), self.alpha),
-            np.power(self.Kq.eval(np.matrix(x)), self.beta) );
-          l_limit = [lb];
-          u_limit = [ub];
-
-        elif self.dim == 2:
-          C1_fn_handle = lambda x,y : np.multiply( 
-            np.power(self.Kp.eval( np.concatenate((np.matrix(x), np.matrix(y)),
-                                   1) ), self.alpha),
-            np.power(self.Kq.eval( np.concatenate((np.matrix(x), np.matrix(y)),
-                                   1) ), self.beta) );
-          l_limit = [lb, lb];
-          u_limit = [ub, ub];
-        C1 = -(self.alpha + self.beta) * integrator(
-                                           C1_fn_handle, l_limit, u_limit);
 
         # theta^p_{1,1} = alpha * E_{x~p}[p0(x)^(alpha-1) * q0(x)^beta]
         theta_p_11 = self.alpha * np.mean(
@@ -109,7 +94,7 @@ class LinearEstimator(PluginEstimator):
                         np.power(self.Kq.eval(self.q_est_data), self.beta - 1)
                        ) );
         # Return plugin + C1 + theta_p_11 + theta_q_11
-        return plugin_est + theta_p_11 + theta_q_11 + C1;
+        return plugin_est + theta_p_11 + theta_q_11;
 
 
 class QuadraticEstimator(PluginEstimator):
@@ -132,52 +117,37 @@ class QuadraticEstimator(PluginEstimator):
 
     def eval(self, fast=True):
         # Plugin estimator
-        plugin_est = super(QuadraticEstimator, self).eval(fast=fast);
+        c2 = 1 - 1.5*(self.alpha+self.beta) + 0.5*(self.alpha+self.beta)**2
+        if c2 != 0:
+            plugin_est = c2 * super(QuadraticEstimator, self).eval(fast=fast);
+        else:
+            plugin_est = 0.0
 
         if fast:
             integrator = lambda x, y, z: fast_integration(x,y,z)
         else:
             integrator = lambda x, y, z: numeric_integration(x,y,z)
 
-        # C2 = 1/2(alpha(alpha-1) + alpha beta + beta(beta-1)) * int {p0(x)^alpha q0(x)^beta} dx
-        if self.dim == 1:
-          C2_fn_handle = lambda x: np.multiply( 
-            np.power(self.Kp.eval(np.matrix(x)), self.alpha),
-            np.power(self.Kq.eval(np.matrix(x)), self.beta) );
-          l_limit = [lb];
-          u_limit = [ub];
-
-        elif self.dim == 2:
-          C2_fn_handle = lambda x,y : np.multiply( 
-            np.power(self.Kp.eval( np.concatenate((np.matrix(x), np.matrix(y)),
-                                   1) ), self.alpha),
-            np.power(self.Kq.eval( np.concatenate((np.matrix(x), np.matrix(y)),
-                                   1) ), self.beta) );
-          l_limit = [lb, lb];
-          u_limit = [ub, ub];
-        C2 = 0.5 * (self.alpha*(self.alpha-1) + self.alpha*self.beta + self.beta*(self.beta-1)) * integrator(C2_fn_handle, l_limit, u_limit);
-
-        # theta^p_{2,1} = \alpha(2-\alpha+\beta/2) \EE[\phat^{\alpha-1}(X)\qhat^\beta(X)]
-        theta_p_21 = self.alpha*(2-self.alpha+self.beta/2)*np.mean(
+        # theta^p_{2,1} = \alpha(2-\alpha-\beta) \EE[\phat^{\alpha-1}(X)\qhat^\beta(X)]
+        theta_p_21 = self.alpha*(2-self.alpha-self.beta)*np.mean(
             np.multiply(np.power(self.Kp.eval(self.p_est_data), self.alpha-1),
                         np.power(self.Kq.eval(self.p_est_data), self.beta))
             )
 
-        # theta^q_{2,1} = \beta (2 - \beta+\alpha/2) \EE[\phat^\alpha(X)\qhat^{\beta-1}(X)]
-        theta_q_21 = self.beta*(2-self.beta+self.alpha/2)*np.mean(
+        # theta^q_{2,1} = \beta (2 -\beta-\alpha) \EE[\phat^\alpha(X)\qhat^{\beta-1}(X)]
+        theta_q_21 = self.beta*(2-self.beta-self.alpha/2)*np.mean(
             np.multiply(np.power(self.Kp.eval(self.q_est_data), self.alpha),
                         np.power(self.Kq.eval(self.q_est_data), self.beta-1))
             )
 
-        # theta^{p,q}_{2,2} = 1/2 \alpha \beta \int \phat^{\alpha-1} \qhat^{\beta-1} pq
-        theta_pq_22 = np.sum([
-                np.mean(self.comp_exp(fn,self.p_est_data)) *
-                np.mean(np.array(self.comp_exp(fn, self.q_est_data)) *
-                        np.array(np.power(self.Kp.eval(self.q_est_data), self.alpha-1)) *
-                        np.array(np.power(self.Kq.eval(self.q_est_data), self.beta-1)))
-                for fn in lattice.lattice(self.dim, self.m)])
+        # theta^{p,q}_{2,2} = \alpha \beta \int \phat^{\alpha-1} \qhat^{\beta-1} pq
+        theta_pq_22 = self.bilinear_term_fast(lambda x: 
+                                              np.array(np.power(self.Kp.eval(x), self.alpha-1)) *
+                                              np.array(np.power(self.Kq.eval(x), self.beta-1)),
+                                              self.p_est_data,
+                                              self.q_est_data)
 
-        theta_pq_22 *= 0.5 * self.alpha * self.beta
+        theta_pq_22 = self.alpha * self.beta * theta_pq_22
 
         # theta^p_{2,2} = 1/2 \alpha(\alpha-1) \int \phat^{\alpha-2}\qhat^\beta p^2
         theta_p_22 = 0.5*self.alpha*(self.alpha-1) * self.quad_term_slow(
@@ -189,7 +159,25 @@ class QuadraticEstimator(PluginEstimator):
             lambda x: np.array(np.power(self.Kp.eval(x), self.alpha)) * np.array(np.power(self.Kq.eval(x), self.beta-2)),
             self.q_est_data)
 
-        return np.real(plugin_est + theta_p_21 + theta_q_21 + theta_p_22 + theta_q_22 + theta_pq_22 + C2);
+        return np.real(plugin_est + theta_p_21 + theta_q_21 + theta_p_22 + theta_q_22 + theta_pq_22);
+
+    def bilinear_term_slow(self, fn, data1, data2):
+         n1 = data1.shape[0]
+         n2 = data2.shape[0]
+         total = 0.0
+         for k in lattice.lattice(self.dim, self.m):
+             for i in range(n1):
+                 for j in range(n2):
+                     total += self.comp_exp(k, data1[i,:])*self.comp_exp(k, data2[j,:])*fn(data2[j,:])
+         return np.real(total[0,0]/(n1*n2))
+
+    def bilinear_term_fast(self, fn, data1, data2):
+        total = np.sum([
+                np.mean(self.comp_exp(k,data1)) *
+                np.mean(np.array(self.comp_exp(k, data2)) *
+                        np.array(fn(data2)))
+                for k in lattice.lattice(self.dim, self.m)])
+        return np.real(total)
 
     def quad_term_slow(self, fn, data):
         n = data.shape[0]

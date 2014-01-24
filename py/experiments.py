@@ -2,12 +2,14 @@ import numpy as np
 import density, estimators, rates, helper
 
 
-def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
+def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=5, fast=True):
     E = None
     if est_type == "plugin":
         E = estimators.PluginEstimator
     elif est_type == "linear":
         E = estimators.LinearEstimator
+    elif est_type == "quadratic":
+        E = estimators.QuadraticEstimator
     else:
         print "Estimator %s not supported" % (est_type)
         return
@@ -47,9 +49,10 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
     return 
 
 if __name__=="__main__":
-    ss = np.arange(0.25, 4.1, 0.25)
+    ss = np.arange(1.0, 4.1, 1.0)
     ns = np.logspace(1, 3.0, 30)
 
-    estimator_rate("plugin", ns, ss, 0.5, 0.5)
-    estimator_rate("linear", ns, ss, 0.5, 0.5)
-    kde_rate(ns, ss)
+#     estimator_rate("plugin", ns, ss, 0.5, 0.5)
+#     estimator_rate("linear", ns, ss, 0.5, 0.5)
+    estimator_rate("quadratic", ns, ss, 0.5, 0.5)
+    kde_rate(ns, ss, iters=20)

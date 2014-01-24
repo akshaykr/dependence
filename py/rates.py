@@ -67,6 +67,26 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
     return (ns, ms, vs)
 
+def test_bilinear_term_estimator(Dp, Dq, ns, iters=10, fast=True):
+    ms = []
+    vs = []
+    T = fast_integration(lambda x: np.array(Dp.eval(x))*np.array(Dq.eval(x)), [0], [1])
+    print "Truth: %f" % (T)
+    for n in ns:
+        sub_scores = []
+        for i in range(iters):
+            pdata = Dp.sample(n)
+            qdata = Dq.sample(n)
+            Q = estimators.QuadraticEstimator(pdata, pdata, 0.5, 0.5, Dp.s)
+            val = Q.bilinear_term_slow(lambda x: 1, pdata, qdata)
+            val2 = Q.bilinear_term_fast(lambda x: np.matrix(np.ones((x.shape[0], 1))), pdata, qdata)
+            print "truth = %0.3f, slow = %0.3f, fast = %0.3f" % (T, val2, val)
+            sub_scores.append(np.abs(val-T))
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
+
 def plot_estimator_rate(ns, ms, vs, gamma):
     """
     Generate three plots. 
