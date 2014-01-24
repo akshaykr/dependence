@@ -61,6 +61,8 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
             pdata = Dp.sample(n)
             Q = estimators.QuadraticEstimator(pdata, pdata, 0.5, 0.5, Dp.s)
             val = Q.quad_term_slow(lambda x: 1, pdata)
+            val2 = Q.quad_term_fast(lambda x: 1, pdata)
+            print "truth = %0.3f, fast = %0.3f, slow = %0.3f" % (T, val2, val)
             sub_scores.append(np.abs(val-T))
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))

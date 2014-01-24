@@ -150,12 +150,12 @@ class QuadraticEstimator(PluginEstimator):
         theta_pq_22 = self.alpha * self.beta * theta_pq_22
 
         # theta^p_{2,2} = 1/2 \alpha(\alpha-1) \int \phat^{\alpha-2}\qhat^\beta p^2
-        theta_p_22 = 0.5*self.alpha*(self.alpha-1) * self.quad_term_slow(
+        theta_p_22 = 0.5*self.alpha*(self.alpha-1) * self.quad_term_fast(
             lambda x: np.array(np.power(self.Kp.eval(x), self.alpha-2)) * np.array(np.power(self.Kq.eval(x), self.beta)),
             self.p_est_data)
 
         # theta^q_{2,2} = 1/2 \beta(\beta-1) \int \phat^{\alpha}\qhat^{\beta-2} q^2
-        theta_q_22 = 0.5 * self.beta*(self.beta-1) * self.quad_term_slow(
+        theta_q_22 = 0.5 * self.beta*(self.beta-1) * self.quad_term_fast(
             lambda x: np.array(np.power(self.Kp.eval(x), self.alpha)) * np.array(np.power(self.Kq.eval(x), self.beta-2)),
             self.q_est_data)
 
@@ -197,8 +197,27 @@ class QuadraticEstimator(PluginEstimator):
                         if j != i:
                             next += bi*self.comp_exp(k, data[i,:])*self.comp_exp(kp, data[j,:])
 
-        print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
+#         print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
         return np.real(2.0*total/(n*(n-1)) - 1.0*next/(n*(n-1)))
+
+    def quad_term_fast(self, fn, data):
+        n = data.shape[0]
+        total = 0.0
+        for k in lattice.lattice(self.dim, self.m):
+            sub1 = np.array(self.comp_exp(k, data))
+            sub2 = sub1*np.array(fn(data))
+            total += np.sum((np.sum(sub2) - sub2) * sub1)
+
+        next = 0.0
+        for k in lattice.lattice(self.dim, self.m):
+            for kp in lattice.lattice(self.dim, self.m):
+                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
+                                      [0 for t in range(self.dim)], [1 for t in range(self.dim)])
+                sub1 = np.array(self.comp_exp(k, data))
+                sub2 = np.array(self.comp_exp(kp, data))
+                next += np.sum(bi* sub1* (np.sum(sub2) - sub2))
+#         print (np.real(2.0*total/(n*(n-1))), np.real(next/(n*(n-1))))
+        return np.real(2.0*total/(n*(n-1))) - np.real(next/(n*(n-1)))
 
     def comp_exp(self, fn, x):
         return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
