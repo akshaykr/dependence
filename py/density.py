@@ -121,11 +121,11 @@ class TrigDensity(object):
         H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50, normed=True)
         H.shape, xedges.shape, yedges.shape = ((50, 50), (51,), (51,))
         
-        extent = [yedges[0], yedges[-1], xedges[-1], xedges[0]]
+        extent = [yedges[-1], yedges[0], xedges[0], xedges[-1]]
         if ax==None:
             fig = plt.figure()
             ax = fig.add_subplot(111)
-            ax.imshow(H, extent=extent, interpolation='nearest')
+            ax.imshow(H.T, extent=extent, interpolation='nearest')
             plt.show()
         else:
             ax.imshow(H, extent=extent, interpolation='nearest')

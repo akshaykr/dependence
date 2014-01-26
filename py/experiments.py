@@ -2,7 +2,7 @@ import numpy as np
 import density, estimators, rates, helper
 
 
-def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=5, fast=True):
+def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
     E = None
     if est_type == "plugin":
         E = estimators.PluginEstimator
@@ -20,8 +20,8 @@ def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=5, fast=True):
             Dp = density.UniTrigDensity(s, 1)
             Dq = density.UniTrigDensity(s, 1)
         else:
-            Dp = density.TrigDensity(s, 10, d)
-            Dq = density.TrigDensity(s, 10, d)
+            Dp = density.TrigDensity(s, 1, d)
+            Dq = density.TrigDensity(s, 1, d)
         (new_ns, ms, vs) = rates.estimator_rate(E, Dp, Dq, ns, alpha=alpha, beta=beta, iters=iters, fast=fast)
         f = open("./data/%s_error_d=%d_s=%s.out" % (est_type, d, str(s)), "w")
         f.write("ns " + " ".join([str(n) for n in ns]) + "\n")
@@ -49,10 +49,10 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
     return 
 
 if __name__=="__main__":
-    ss = np.arange(1.0, 4.1, 1.0)
-    ns = np.logspace(1, 3.0, 10)
+    ss = np.arange(1.0, 2.1, 1.0)
+    ns = np.logspace(1, 4, 20)
 
-#     estimator_rate("plugin", ns, ss, 0.5, 0.5)
-#     estimator_rate("linear", ns, ss, 0.5, 0.5)
-    estimator_rate("quadratic", ns, ss, 0.5, 0.5)
-    kde_rate(ns, ss, iters=20)
+    estimator_rate("plugin", ns, ss, 0.5, 0.5, d=2)
+    estimator_rate("linear", ns, ss, 0.5, 0.5, d=2)
+#     estimator_rate("quadratic", ns, ss, 0.5, 0.5)
+    kde_rate(ns, ss, d=2)

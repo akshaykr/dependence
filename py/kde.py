@@ -21,7 +21,7 @@ class KDE(object):
         self.n = data.shape[0]
         self.replicated_data = np.matrix(np.zeros((3**self.d*self.n, self.d)))
         for i in range(3**self.d):
-            tuple = [int(i/3**j) for j in range(self.d)]
+            tuple = [int(i/3**j) % 3 for j in range(self.d)]
             for j in range(self.d):
                 if tuple[j] == 0:
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = -1*self.data[:,j]
@@ -49,21 +49,19 @@ class KDE(object):
         """
         Evaluate the kernel density estimator at a set of points x.
         """
+#         print [self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])]
         vals = 1.0/(self.n * self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
+#         print vals
         vals = np.maximum(vals, np.matrix(0.5*np.ones(vals.shape)))
         return vals
 #         return vals.T[0,:]
 
-    def kde_error(self, true_p, p_norm, fast=True):
+    def kde_error(self, true_p, p_norm):
         """
         compute the error of this estimator in ell_p^p norm. 
         """
-        if fast:
-            integrator = lambda x,y,z: helper.fast_integration(x,y,z)
-        else:
-            integrator = lambda x,y,z: helper.numeric_integration(x,y,z)
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
-        return integrator(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
+        return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
 
     def kde_error2(self, true_p, p_norm):
         coords = np.matrix(np.arange(0, 1, 0.01)).T
