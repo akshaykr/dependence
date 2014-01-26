@@ -52,6 +52,80 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
     return (ns, ms, vs)
 
+def renyi_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
+    """
+    Rate of convergence experiment for Renyi-alpha divergence.
+    """
+    ms = []
+    vs = []
+    T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
+    truth = 1.0/(alpha-1) * np.log(T.eval(fast=fast))
+    
+    for n in ns:
+        sub_scores = []
+        for i in range(iters):
+            pdata = Dp.sample(n)
+            qdata = Dq.sample(n)
+            E = Est(pdata, qdata, alpha, 1-alpha, Dp.s)
+            val = E.eval(fast=fast)
+            val = 1.0/(alpha-1) * np.log(val)
+            sub_scores.append(np.abs(val-truth))
+
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
+
+def tsallis_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
+    """
+    Rate of convergence experiment for tsallis-alpha divergence.
+    """
+    ms = []
+    vs = []
+    T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
+    truth = 1.0/(alpha-1) * (T.eval(fast=fast) - 1)
+    
+    for n in ns:
+        sub_scores = []
+        for i in range(iters):
+            pdata = Dp.sample(n)
+            qdata = Dq.sample(n)
+            E = Est(pdata, qdata, alpha, 1-alpha, Dp.s)
+            val = E.eval(fast=fast)
+            val = 1.0/(alpha-1) * (val - 1)
+            sub_scores.append(np.abs(val-truth))
+
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
+
+def l2_rate(Dp, Dq, ns, iters=50, fast=True):
+    ms = []
+    vs = []
+    x = np.matrix(np.arange(0, 1, 0.001)).T
+    truth = np.mean(np.array((Dp.eval(x)- Dq.eval(x)))**2)
+    
+    for n in ns:
+        sub_scores = []
+        for i in range(iters):
+            pdata = Dp.sample(n)
+            qdata = Dq.sample(n)
+            E = estimators.L2Estimator(pdata, qdata, Dp.s)
+            val = E.eval(fast=fast)
+            sub_scores.append(np.abs(val-truth))
+
+        sub_scores.sort();   
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
+
 def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
     ms = []
     vs = []

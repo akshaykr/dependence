@@ -200,6 +200,32 @@ class QuadraticEstimator(PluginEstimator):
     def comp_exp(self, fn, x):
         return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
 
+class L2Estimator(object):
+    def __init__(self, pdata, qdata, s):
+        self.pdata = pdata
+        self.qdata = qdata
+        self.dim = pdata.shape[1]
+        self.n = pdata.shape[0]
+        self.s = s
+        self.m = 2*np.power(18*self.dim/self.s * np.power(2, 4.0*self.s/self.dim)* self.n**(-2), -float(self.dim)/(4*self.s+self.dim))
+
+    def eval(self, fast=True):
+        T1 = 0.0
+        T2 = 0.0
+        ## T1 = \int p^2. T2 = \int q^2, T3 = -2 \int pq
+        for k in lattice.lattice(self.dim, self.m):
+            T1 += 1.0/self.pdata.shape[0]**2 *(np.sum(np.array(self.comp_exp(k, self.pdata)))**2 - np.sum(np.array(self.comp_exp(k,self.pdata))**2))
+            T2 += 1.0/self.qdata.shape[0]**2 *(np.sum(np.array(self.comp_exp(k, self.qdata)))**2 - np.sum(np.array(self.comp_exp(k,self.qdata))**2))
+
+        T3 = -2.0 * np.sum([
+                np.mean(self.comp_exp(k,self.pdata)) *
+                np.mean(np.array(self.comp_exp(k, self.qdata)))
+                for k in lattice.lattice(self.dim, self.m)])
+        return np.real(T1 + T2 + T3)
+
+    def comp_exp(self, fn, x):
+        return np.exp(2j*np.pi*np.matrix(fn)*np.matrix(x).T).T
+
 class Truth(object):
     def __init__(self, p, q, alpha, beta):
         self.p = p
