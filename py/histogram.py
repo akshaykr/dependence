@@ -20,6 +20,9 @@ class Histogram(object):
         self.thetas = [np.mean(np.logical_and(self.data > self.bins[i], self.data <= self.bins[i+1])) for i in range(len(self.bins)-1)]
             
     def eval(self, pts):
+        """
+        Evaluate the histogram estimator on the points. 
+        """
         m = pts.shape[0]
         out = []
         for i in range(m):
@@ -29,7 +32,7 @@ class Histogram(object):
 
     def kde_error(self, true_p, p_norm, fast=True):
         """
-        compute the error of this estimator in ell_p^p norm. 
+        Compute the error of this estimator in ell_p^p norm. 
         """
         if fast:
             integrator = lambda x,y,z: helper.fast_integration(x,y,z)

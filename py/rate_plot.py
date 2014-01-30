@@ -3,6 +3,10 @@ import numpy as np
 from matplotlib import rc, mlab
 from matplotlib import font_manager
 
+"""
+Plot the theoretical rates of convergence of the estimators in the paper.
+"""
+
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
 

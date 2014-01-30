@@ -3,6 +3,18 @@ import density, estimators, rates, helper
 
 
 def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
+    """
+    Experiment for the rate of convergence of the estimator for T(p,q) = \int p^\alpha q^\beta.
+    est_type -- which estimator, "linear" "plugin" or "quadratic"
+    ns -- which ns should we run the experiment on. Try np.logspace(1, 4, 20)
+    ss -- which smoothnesses should we run the experiment on
+    alpha -- the exponent for p
+    beta -- the exponent for q
+    d -- the dimension
+    iters -- how many iterations should we use
+
+    Returns nothing but writes log files with the results of the experiments to ./data/
+    """
     E = None
     if est_type == "plugin":
         E = estimators.PluginEstimator
@@ -31,6 +43,15 @@ def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
     return
 
 def kde_rate(ns, ss, d=1, iters=50, fast=True):
+    """
+    Experiment for the KDE rate of convergence. 
+    ns -- which ns should we run the experiment on. Try np.logspace(1, 4, 20)
+    ss -- which smoothnesses should we run the experiment on
+    d -- the dimension
+    iters -- how many iterations should we use
+
+    Returns nothing but writes log files with the results of the experiments to ./data/
+    """
     ps = [1,2,3]
     for s in ss:
         print "s = %s" % (str(s))

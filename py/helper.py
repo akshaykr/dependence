@@ -1,6 +1,10 @@
 from scipy.integrate import dblquad, quad
 import numpy as np
 
+"""
+Helper routines for numeric integration.
+"""
+
 def numeric_integration(f, l_limit, u_limit):
     """
     A wrapper function for python's quad and dblquad. f is the function handle.
@@ -17,6 +21,13 @@ def numeric_integration(f, l_limit, u_limit):
 
 
 def fast_integration(f, l_limit, u_limit, pts = 1000):
+    """
+    Faster integration by splitting the domain into rectangles.
+
+    f is the function handle. In contrast with the numeric_integration routine, this is a function of one variable which is a n-by-d matrix of points to evaluate.
+    l_limit is a vector of the lower limits
+    u_limit is the vector of the upper limits
+    """
     num_dims = len(l_limit)
     if num_dims == 1:
         pts = np.matrix(np.arange(l_limit[0], u_limit[0], (u_limit[0]-l_limit[0])/pts)).T

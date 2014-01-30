@@ -2,6 +2,11 @@ import numpy as np
 from numpy import power as powr
 import matplotlib.pyplot as plt
 
+"""
+Routines for computing appropriate kernels.
+The only function exposed is the "kernel" function at the bottom.
+"""
+
 def leg_poly_0(u):
   return 1/np.sqrt(2) * np.ones(np.shape(u));
 

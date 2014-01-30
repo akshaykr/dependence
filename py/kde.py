@@ -9,6 +9,8 @@ class KDE(object):
         """
         Initialize a kernel density estimator with a n x d matrix of data and the appropriate smoothness s.
         We need to know the smoothness to choose the correct kernel and to choose the correct bandwidth.
+
+        We correct for bias on the boundary by mirroring the data across the axis.
         """
         self.s = s
         self.m = None
@@ -40,8 +42,10 @@ class KDE(object):
         
     def eval2(self, pts):
         """
+        Deprecated
         Evaluate the kernel density estimator at a set of points x.
         """
+        assert False, "Deprecated"
         vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data[j,:] - pts, None) for j in range(self.n)], axis=0).T
         return vals[0,:]
 
@@ -49,12 +53,9 @@ class KDE(object):
         """
         Evaluate the kernel density estimator at a set of points x.
         """
-#         print [self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])]
         vals = 1.0/(self.n * self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
-#         print vals
         vals = np.maximum(vals, np.matrix(0.5*np.ones(vals.shape)))
         return vals
-#         return vals.T[0,:]
 
     def kde_error(self, true_p, p_norm, pts=1000):
         """
@@ -62,10 +63,12 @@ class KDE(object):
         """
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
         return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)], pts=pts)
-#         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)))), p_norm)
-#         return helper.numeric_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
 
     def kde_error2(self, true_p, p_norm):
+        """
+        Deprecated -- a slower way to compute the error
+        """
+        assert False, "Deprecated"
         coords = np.matrix(np.arange(0, 1, 0.01)).T
         vals = self.eval(coords)
         truth = true_p.eval(coords).reshape(coords.shape[0],)
