@@ -49,10 +49,13 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
     return 
 
 if __name__=="__main__":
-    ss = np.arange(1.0, 2.1, 1.0)
-    ns = np.logspace(1, 4, 20)
+    ss = [3.0, 4.0]
+    ns = np.logspace(1, 4.0, 30)
 
     estimator_rate("plugin", ns, ss, 0.5, 0.5, d=2)
     estimator_rate("linear", ns, ss, 0.5, 0.5, d=2)
-#     estimator_rate("quadratic", ns, ss, 0.5, 0.5)
-    kde_rate(ns, ss, d=2)
+
+#     ss = [1.0, 2.0]
+#     ns = np.logspace(1, 2.6990, 20)
+#     estimator_rate("quadratic", ns, ss, 0.5, 0.5, iters=20)
+#     kde_rate(ns, ss, d=1)

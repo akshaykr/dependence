@@ -16,10 +16,10 @@ def numeric_integration(f, l_limit, u_limit):
     return ret[0];
 
 
-def fast_integration(f, l_limit, u_limit):
+def fast_integration(f, l_limit, u_limit, pts = 1000):
     num_dims = len(l_limit)
     if num_dims == 1:
-        pts = np.matrix(np.arange(l_limit[0], u_limit[0], 0.001)).T
+        pts = np.matrix(np.arange(l_limit[0], u_limit[0], (u_limit[0]-l_limit[0])/pts)).T
         return np.mean(f(pts))
 
     if num_dims == 2:

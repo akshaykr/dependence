@@ -31,7 +31,7 @@ class KDE(object):
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = 2 - self.data[:,j]
         
         self.data = self.replicated_data
-        self.h = np.power(self.n, -1.0/(2*self.s+self.d))
+        self.h = 0.5*np.power(self.n, -1.0/(2*self.s+self.d))
 
         to_keep = [i for i in range(self.data.shape[0]) if np.max(np.abs(self.data[i,:] - np.matrix(0.5*np.ones((1, self.d))))) <= 0.5+self.h]
         self.data = self.replicated_data[to_keep,:]
@@ -56,12 +56,14 @@ class KDE(object):
         return vals
 #         return vals.T[0,:]
 
-    def kde_error(self, true_p, p_norm):
+    def kde_error(self, true_p, p_norm, pts=1000):
         """
         compute the error of this estimator in ell_p^p norm. 
         """
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
-        return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
+        return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)], pts=pts)
+#         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)))), p_norm)
+#         return helper.numeric_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
 
     def kde_error2(self, true_p, p_norm):
         coords = np.matrix(np.arange(0, 1, 0.01)).T

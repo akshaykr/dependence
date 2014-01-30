@@ -34,7 +34,8 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
     ms = []
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, beta)
-    truth = T.eval(fast=fast)
+    truth = T.eval(fast=True)
+#     truth = 0.25 * (2 + 5.0* np.arctan(1.0/2))
 
     for n in ns:
         sub_scores = []
@@ -59,7 +60,7 @@ def renyi_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
     ms = []
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
-    truth = 1.0/(alpha-1) * np.log(T.eval(fast=fast))
+    truth = 1.0/(alpha-1) * np.log(T.eval(fast=False))
     
     for n in ns:
         sub_scores = []
@@ -85,7 +86,7 @@ def tsallis_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
     ms = []
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
-    truth = 1.0/(alpha-1) * (T.eval(fast=fast) - 1)
+    truth = 1.0/(alpha-1) * (T.eval(fast=False) - 1)
     
     for n in ns:
         sub_scores = []
@@ -109,7 +110,10 @@ def l2_rate(Dp, Dq, ns, iters=50, fast=True):
     vs = []
     x = np.matrix(np.arange(0, 1, 0.001)).T
     truth = np.mean(np.array((Dp.eval(x)- Dq.eval(x)))**2)
-    
+
+    truth = numeric_integration(lambda x: 
+                                (Dp.eval(np.matrix(x))- Dq.eval(np.matrix(x)))**2,
+                                [0], [1])
     for n in ns:
         sub_scores = []
         for i in range(iters):
@@ -125,6 +129,16 @@ def l2_rate(Dp, Dq, ns, iters=50, fast=True):
         vs.append(np.std(sub_scores))
         print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
     return (ns, ms, vs)
+
+def test_integration(Dp, Dq, ns, alpha=0.5):
+    T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
+    truth = T.eval(fast=False)
+
+    ms = []
+    for n in ns:
+        val = T.eval(fast=True, pts=n)
+        ms.append(np.abs(truth-val))
+    return (ns, ms)
 
 def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
     ms = []
@@ -150,14 +164,14 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
 def test_linear_functional(Dp, ns, iters=10, fast=True):
   ms = [];
   vs = [];
-  T = fast_integration(lambda x: np.array(Dp.eval(x)) * np.array(x), [0], [1]); 
+  T = numeric_integration(lambda x: np.array(Dp.eval(x)) * np.array(x), [0], [1]); 
   print "True Expectation: %f\n" % (T)
   for n in ns:
     sub_scores = [];
     for i in range(iters):
       pdata = Dp.sample(n);
       val = np.mean(pdata, axis=0)
-      print "truth = %0.3f, fast = %0.3f," % (T, val)
+#       print "truth = %0.3f, fast = %0.3f," % (T, val)
       sub_scores.append(np.abs(val-T))
     sub_scores.sort();
     sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
@@ -165,7 +179,30 @@ def test_linear_functional(Dp, ns, iters=10, fast=True):
     vs.append(np.std(sub_scores))
     print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
   return (ns, ms, vs)
-  
+
+def test_linear_functional2(Dp, Dq, ns, alpha=0.5, beta=0.5, iters=10, fast=True):
+    ms = []
+    vs = []
+    T = numeric_integration(lambda x: np.multiply(np.power(Dp.eval(x), alpha), np.power(Dq.eval(x), beta)), [0], [1])
+    print "True Expectation: %f\n" % (T)
+    for n in ns:
+        sub_scores = [];
+        for i in range(iters):
+            pdata = Dp.sample(n);
+            qdata = Dq.sample(n)
+#             L = estimators.LinearEstimator(pdata, qdata, alpha, beta, Dp.s)
+            fn1 = lambda x: np.multiply(np.power(Dp.eval(x), alpha-1), np.power(Dq.eval(x), beta))
+            val1 = alpha* np.mean(fn1(pdata))
+            fn2 = lambda x: np.multiply(np.power(Dp.eval(x), alpha), np.power(Dq.eval(x), beta-1))
+            val2 = beta* np.mean(fn1(qdata))
+#             print "truth = %0.3f, fast = %0.3f," % (T, val)
+            sub_scores.append(np.abs(val1+val2-T))
+        sub_scores.sort();
+        sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
+        ms.append(np.mean(sub_scores))
+        vs.append(np.std(sub_scores))
+        print "n = %d, av_er = %0.2f, std_er = %0.4f" % (n, np.mean(sub_scores), np.std(sub_scores))
+    return (ns, ms, vs)
 
 def test_bilinear_term_estimator(Dp, Dq, ns, iters=10, fast=True):
     ms = []

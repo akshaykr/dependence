@@ -53,8 +53,9 @@ def l2_rate_experiment(ns, ss, d=1, iters=50, fast=True):
     return
 
 if __name__=="__main__":
-    ss = np.arange(0.25, 2.1, 0.25)
-    ns = np.logspace(1, 3.0, 30)
+#     ss = np.arange(0.25, 2.1, 0.25)
+    ss = [1.0, 2.0]
+    ns = np.logspace(1, 4.0, 30)
 
-    divergences_rate("linear", ns, ss)
+    divergences_rate("linear", ns, ss, iters=50)
     l2_rate_experiment(ns, ss)
