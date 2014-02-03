@@ -1,7 +1,6 @@
-import numpy as np
 import density, helper, kernels
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 class KDE(object):
 
@@ -31,7 +30,7 @@ class KDE(object):
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = self.data[:,j]
                 if tuple[j] == 2:
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = 2 - self.data[:,j]
-        
+
         self.data = self.replicated_data
         self.h = 0.5*np.power(self.n, -1.0/(2*self.s+self.d))
 
@@ -39,7 +38,7 @@ class KDE(object):
         self.data = self.replicated_data[to_keep,:]
 
         self.kernel = lambda x, c: kernels.kernel(x, self.m, self.h, centre=c)
-        
+
     def eval2(self, pts):
         """
         Deprecated
@@ -59,7 +58,7 @@ class KDE(object):
 
     def kde_error(self, true_p, p_norm, pts=1000):
         """
-        compute the error of this estimator in ell_p^p norm. 
+        compute the error of this estimator in ell_p^p norm.
         """
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
         return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)], pts=pts)
@@ -86,12 +85,12 @@ if __name__=='__main__':
 
         print "Sampling %d samples from univariate density" % (n)
         data = D.sample(n)
-        
+
         K = KDE(data, s)
-        
+
         pts = np.matrix(np.arange(0, 1.0, 0.001)).T
-        
-        print "Evaluating KDE on %d points" % (pts.shape[0]) 
+
+        print "Evaluating KDE on %d points" % (pts.shape[0])
         vals = K.eval(pts)
 
         fig = plt.figure(1, figsize=(10, 5))
@@ -117,11 +116,11 @@ if __name__=='__main__':
         X,Y = np.meshgrid(x,y)
         v = np.matrix(zip(X.reshape(t**2,), Y.reshape(t**2,)))
 
-        print "Evaluating KDE on %d points" % (len(x)*len(y)) 
+        print "Evaluating KDE on %d points" % (len(x)*len(y))
         z = K.eval(v)
         z = np.array(z)
         Z = z.reshape(len(x), len(y))
-        
+
         fig = plt.figure(2, figsize=(10,5))
         ax1 = fig.add_subplot(131)
         D.plot_fn_histogram(ax=ax1)

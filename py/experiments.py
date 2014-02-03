@@ -1,6 +1,7 @@
+import density
+import estimators
 import numpy as np
-import density, estimators, rates, helper
-
+import rates
 
 def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
     """
@@ -44,7 +45,7 @@ def estimator_rate(est_type, ns, ss, alpha, beta, d=1, iters=50, fast=True):
 
 def kde_rate(ns, ss, d=1, iters=50, fast=True):
     """
-    Experiment for the KDE rate of convergence. 
+    Experiment for the KDE rate of convergence.
     ns -- which ns should we run the experiment on. Try np.logspace(1, 4, 20)
     ss -- which smoothnesses should we run the experiment on
     d -- the dimension
@@ -59,7 +60,7 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
             D = density.UniTrigDensity(s, 1)
         else:
             D = density.TrigDensity(s, 1, d)
-        
+
         (new_ns, ms, vs) = rates.kde_rate(D, ns, ps, iters=iters)
         for i in range(len(ps)):
             f = open("./data/kde_error_d=%d_p=%d_s=%s.out" % (d, ps[i], str(s)), "w")
@@ -67,7 +68,7 @@ def kde_rate(ns, ss, d=1, iters=50, fast=True):
             f.write("ms " + " ".join([str(m) for m in ms[i]]) + "\n")
             f.write("vs " + " ".join([str(v) for v in vs[i]]))
             f.close()
-    return 
+    return
 
 if __name__=="__main__":
     ss = [3.0, 4.0]

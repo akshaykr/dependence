@@ -1,7 +1,10 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rc, mlab
-from matplotlib import font_manager
+import numpy as np
+
+from matplotlib import (
+    font_manager,
+    rc,
+)
 
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
@@ -100,7 +103,6 @@ def quadratic_plot(ss, savefig=False):
         plt.savefig("./figs/quadratic_log_log_d=1.eps", type="eps", dpi=1000)
 
     plt.show()
-    
 
 def divergence_plot(type, ss, savefig=False):
     """
@@ -147,10 +149,10 @@ def divergence_plot(type, ss, savefig=False):
         plt.savefig("./figs/%s_log_log_d=1.eps" % (type), type="eps", dpi=1000)
 
     plt.show()
-        
+
 def plot_estimator_rate(ns, ms, vs, gamma):
     """
-    Generate three plots. 
+    Generate three plots.
     One is an error bar plot of the error of the estimator.
     The next is n vs \exp\{\log(err(n)) + \gamma \log n\} which should pull out the constant in the rate.
     The third is n vs -\log(err(n)/\log(n) which should approach \gamma

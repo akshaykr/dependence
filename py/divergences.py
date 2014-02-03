@@ -1,5 +1,7 @@
+import density
+import estimators
 import numpy as np
-import density, estimators, rates, helper
+import rates
 
 def divergences_rate(est_type, ns, ss, d=1, iters=50, fast=True):
     """

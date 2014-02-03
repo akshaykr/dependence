@@ -1,6 +1,14 @@
+import density
+import estimators
+import kde
 import numpy as np
-from helper import *
-import density, kde, estimators, histogram
+
+from helper import numeric_integration
+from plotting import (
+    plot_estimator_rate,
+    plot_log_log,
+)
+from tests import test_linear_functional
 
 def kde_rate(D, ns, ps, iters=10):
     """
@@ -20,7 +28,7 @@ def kde_rate(D, ns, ps, iters=10):
         print "n = %d " % n + " ".join([str(ps[i]) + " = %0.2f" % np.mean(sub_scores[i]) for i in range(len(ps))])
         [ms[i].append(np.mean(sub_scores[i])) for i in range(len(ps))]
         [vs[i].append(np.std(sub_scores[i])) for i in range(len(ps))]
-    
+
     return (ns, ms, vs)
 
 
@@ -44,7 +52,7 @@ def estimator_rate(Est, Dp, Dq, ns, alpha=1, beta=1, iters=10, fast=True):
             val = E.eval(fast=fast)
             sub_scores.append(np.abs(val-truth))
 
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -59,7 +67,7 @@ def renyi_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
     truth = 1.0/(alpha-1) * np.log(T.eval(fast=False))
-    
+
     for n in ns:
         sub_scores = []
         for i in range(iters):
@@ -70,7 +78,7 @@ def renyi_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
             val = 1.0/(alpha-1) * np.log(val)
             sub_scores.append(np.abs(val-truth))
 
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -85,7 +93,7 @@ def tsallis_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
     vs = []
     T = estimators.Truth(Dp, Dq, alpha, 1-alpha)
     truth = 1.0/(alpha-1) * (T.eval(fast=False) - 1)
-    
+
     for n in ns:
         sub_scores = []
         for i in range(iters):
@@ -96,7 +104,7 @@ def tsallis_rate(Est, Dp, Dq, ns, alpha=0.5, iters=50, fast=True):
             val = 1.0/(alpha-1) * (val - 1)
             sub_scores.append(np.abs(val-truth))
 
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -113,7 +121,7 @@ def l2_rate(Dp, Dq, ns, iters=50, fast=True):
     x = np.matrix(np.arange(0, 1, 0.001)).T
     truth = np.mean(np.array((Dp.eval(x)- Dq.eval(x)))**2)
 
-    truth = numeric_integration(lambda x: 
+    truth = numeric_integration(lambda x:
                                 (Dp.eval(np.matrix(x))- Dq.eval(np.matrix(x)))**2,
                                 [0], [1])
     for n in ns:
@@ -125,7 +133,7 @@ def l2_rate(Dp, Dq, ns, iters=50, fast=True):
             val = E.eval(fast=fast)
             sub_scores.append(np.abs(val-truth))
 
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -138,13 +146,11 @@ if __name__ == '__main__' :
   plot_estimator_rate(ns, ms, vs, 0.5)
   (m, b) = plot_log_log(ns, ms)
   print m, b
-  
 
-
-# To rescale a rate of n^{-\gamma}, plot ns versus 
+# To rescale a rate of n^{-\gamma}, plot ns versus
 # [np.exp(np.log(ms[i]) + gamma*np.log(ns[i])) for i in range(len(ns))]
 # And you should see the constant \gamma come out.
 
 # To empirically verify the parameter \gamma, plot ns versus
 # [- np.log(ms[i])/np.log(ns[i]) for i in range(len(ns))]
-# And you should see the line approach \gamma. 
+# And you should see the line approach \gamma.

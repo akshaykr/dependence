@@ -1,7 +1,10 @@
 import numpy as np
 import kde, density, lattice
-import itertools
-from helper import *
+# TODO. WTF IS THIS * Import
+from helper import (
+    fast_integration,
+    numeric_integration,
+)
 
 lb = 0.0
 ub = 1.0
@@ -27,14 +30,14 @@ class PluginEstimator(object):
         self.alpha = alpha
         self.beta = beta
         self.s = s
-        
+
     def eval(self, fast=True):
         """
         Evaluate the estimator by performing numeric integration on the n^d grid of points.
         Currently we ignore the fast parameter -- we are always doing fast numeric integration.
         """
         val = fast_integration(lambda x: np.multiply(
-                np.power(self.Kp.eval(np.matrix(x)), self.alpha), 
+                np.power(self.Kp.eval(np.matrix(x)), self.alpha),
                 np.power(self.Kq.eval(np.matrix(x)), self.beta)),
                                [lb for i in range(self.dim)], [ub for i in range(self.dim)])
         return val
@@ -248,7 +251,7 @@ class QuadraticEstimator(PluginEstimator):
         term2 = 0.0
         for k in lattice.lattice(self.dim, self.m):
             for kp in lattice.lattice(self.dim, self.m):
-                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
+                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)),
                                       [0 for t in range(self.dim)], [1 for t in range(self.dim)])
                 for i in range(n):
                     for j in range(n):
@@ -277,7 +280,7 @@ class QuadraticEstimator(PluginEstimator):
         term2 = 0.0
         for k in lattice.lattice(self.dim, self.m):
             for kp in lattice.lattice(self.dim, self.m):
-                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)), 
+                bi = fast_integration(lambda x: np.array(self.comp_exp(k,x))*np.array(self.comp_exp(kp,x))*np.array(fn(x)),
                                       [0.0 for t in range(self.dim)], [1.0 for t in range(self.dim)], pts=100)
                 sub1 = np.array(self.comp_exp(k, data))
                 sub2 = np.array(self.comp_exp(kp, data))
@@ -364,7 +367,7 @@ class Truth(object):
             print "using fast integration"
             if self.dim == 1:
                 val = fast_integration(lambda x: np.multiply(
-                        np.power(self.p.eval(np.matrix(x)), self.alpha), 
+                        np.power(self.p.eval(np.matrix(x)), self.alpha),
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
                                           [lb], [ub], pts=pts)
             if self.dim == 2:
@@ -373,13 +376,11 @@ class Truth(object):
                         np.power(self.q.eval(np.matrix(x)), self.beta)),
                                           [lb,lb], [ub,ub])
         return val
-        
-
 
 if __name__=='__main__':
     print "Generating two uni-trig-densities"
     Dp = density.UniTrigDensity(2, 2)
-    Dq = density.UniTrigDensity(2, 2)    
+    Dq = density.UniTrigDensity(2, 2)
     alpha = 1
     beta = 1
 
@@ -396,7 +397,7 @@ if __name__=='__main__':
         lin_sub_scores = []
         for i in range(10):
             pdata = Dp.sample(n)
-            qdata = Dq.sample(n)            
+            qdata = Dq.sample(n)
             PL = PluginEstimator(pdata, qdata, alpha, beta, 2)
             LIN = LinearEstimator(pdata, qdata, alpha, beta, 2);
             pl_sc = PL.eval(100)
@@ -406,5 +407,5 @@ if __name__=='__main__':
             lin_sub_scores.append(lin_sc)
         pl_scores.append(pl_sub_scores)
         lin_scores.append(lin_sub_scores)
-    
+
     print (pl_scores, lin_scores)

@@ -1,9 +1,8 @@
-import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-from matplotlib import cm
-import itertools
 import lattice
+import matplotlib.pyplot as plt
+import numpy as np
+
+from matplotlib import cm
 
 """
 Module for generating sobolev densities and related subroutines.
@@ -27,7 +26,7 @@ class TrigDensity(object):
     The density is a linear combination of exp^{2 i pi k^Tx} for k \in \ZZ^d.
     The coefficients decay so that the function lives in the Sobolev space with smoothness s and parameter L.
     """
-    def __init__(self,s,L,d):
+    def __init__(self, s, L, d):
         """
         Init, s = sobolev smoothness, L = sobolev length, d = dimension
         """
@@ -107,7 +106,7 @@ class TrigDensity(object):
 
     def plot_fn_histogram(self, ax=None):
         """
-        For a 2-d density, plot a top-down histogram of the density contours. This is just a colored matrix. 
+        For a 2-d density, plot a top-down histogram of the density contours. This is just a colored matrix.
         If supplied ax, plot on that axis. Otherwise plot and show in a new figure.
         """
         assert self.d == 2, "plot_fn_histogram is only available for 2-d densities"
@@ -134,7 +133,7 @@ class TrigDensity(object):
         assert data.shape[1] == 2
         H, xedges, yedges = np.histogram2d(data[:,0], data[:,1], bins=50, normed=True)
         H.shape, xedges.shape, yedges.shape = ((50, 50), (51,), (51,))
-        
+
         extent = [yedges[-1], yedges[0], xedges[0], xedges[-1]]
         if ax==None:
             fig = plt.figure()
@@ -146,7 +145,7 @@ class TrigDensity(object):
 
 class UniTrigDensity(object):
     """
-    Univariate trigonometric density object. 
+    Univariate trigonometric density object.
     The density belongs to the Sobolev space W(s,L)
     """
     def __init__(self,s,L,d=1):
@@ -158,7 +157,7 @@ class UniTrigDensity(object):
         self.L = L
         self.d = d
         self.generate_density()
-        
+
     def generate_density(self):
         """
         Construct a trigonometric density in one dimension
@@ -269,7 +268,7 @@ class QuadraticDensity(object):
             else:
                 x = np.append(x, proposal[to_retain,:], 0)
         return np.matrix(x[0:n])
-        
+
     def eval(self, pts):
         return 5.0/4 - np.power(0.5-pts, 2)
 

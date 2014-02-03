@@ -1,6 +1,9 @@
 import numpy as np
 import estimators
-from helper import *
+from helper import (
+    fast_integration,
+    numeric_integration,
+)
 
 def test_integration(Dp, Dq, ns, alpha=0.5):
     """
@@ -33,7 +36,7 @@ def test_quadratic_term_estimator(Dp, ns, iters=10, fast=True):
             val2 = Q.quad_term_fast(lambda x: 1, pdata)
             print "truth = %0.3f, fast = %0.3f, slow = %0.3f" % (T, val2, val)
             sub_scores.append(np.abs(val-T))
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
@@ -46,7 +49,7 @@ def test_linear_functional(Dp, ns, iters=10, fast=True):
     """
     ms = [];
     vs = [];
-    T = numeric_integration(lambda x: np.array(Dp.eval(x)) * np.array(x), [0], [1]); 
+    T = numeric_integration(lambda x: np.array(Dp.eval(x)) * np.array(x), [0], [1]);
     print "True Expectation: %f\n" % (T)
     for n in ns:
         sub_scores = [];
@@ -77,7 +80,7 @@ def test_linear_functional2(Dp, Dq, ns, alpha=0.5, beta=0.5, iters=10, fast=True
             qdata = Dq.sample(n)
             fn1 = lambda x: np.multiply(np.power(Dp.eval(x), alpha-1), np.power(Dq.eval(x), beta))
             val1 = alpha* np.mean(fn1(pdata))
-            fn2 = lambda x: np.multiply(np.power(Dp.eval(x), alpha), np.power(Dq.eval(x), beta-1))
+            #fn2 = lambda x: np.multiply(np.power(Dp.eval(x), alpha), np.power(Dq.eval(x), beta-1))
             val2 = beta* np.mean(fn1(qdata))
             sub_scores.append(np.abs(val1+val2-T))
         sub_scores.sort();
@@ -105,7 +108,7 @@ def test_bilinear_term_estimator(Dp, Dq, ns, iters=10, fast=True):
             val2 = Q.bilinear_term_fast(lambda x: np.matrix(np.ones((x.shape[0], 1))), pdata, qdata)
             print "truth = %0.3f, slow = %0.3f, fast = %0.3f" % (T, val2, val)
             sub_scores.append(np.abs(val-T))
-        sub_scores.sort();   
+        sub_scores.sort();
         sub_scores = sub_scores[int(0.2*iters): int(0.8*iters)];
         ms.append(np.mean(sub_scores))
         vs.append(np.std(sub_scores))
