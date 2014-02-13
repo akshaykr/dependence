@@ -1,7 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import rc, mlab
-from matplotlib import font_manager
+from matplotlib import (
+    font_manager,
+    rc,
+)
+
+"""
+Plot the theoretical rates of convergence of the estimators in the paper.
+"""
 
 rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
 rc('text', usetex=True)
@@ -56,5 +62,5 @@ if __name__=="__main__":
     plt.gcf().subplots_adjust(bottom=0.20)
 
     plt.savefig("./figs/rate_plot.eps", dpi=1000, format="eps", bbox_inches="tight")
-    
+
     plt.show()

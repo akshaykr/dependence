@@ -1,6 +1,12 @@
-import numpy as np
-from numpy import power as powr
 import matplotlib.pyplot as plt
+import numpy as np
+
+from numpy import power as powr
+
+"""
+Routines for computing appropriate kernels.
+The only function exposed is the "kernel" function at the bottom.
+"""
 
 def leg_poly_0(u):
   return 1/np.sqrt(2) * np.ones(np.shape(u));
@@ -15,13 +21,13 @@ def leg_poly_3(u):
   return 1/2.0 * np.sqrt(7/2) * (5*powr(u,3) - 3*u);
 
 def leg_poly_4(u):
-  return 1/(128*np.sqrt(2)) * (384*powr(u,4) + 
-                               1152*np.multiply((powr(u,2) - 1), powr(u,2)) + 
+  return 1/(128*np.sqrt(2)) * (384*powr(u,4) +
+                               1152*np.multiply((powr(u,2) - 1), powr(u,2)) +
                                144*powr((powr(u, 2) - 1), 2) );
 
 def leg_poly_5(u):
   return 1/3840.0 * np.sqrt(11/2) * (3840*powr(u,5) +
-                      7200 * np.multiply(powr((powr(u,2) - 1), 2), u) + 
+                      7200 * np.multiply(powr((powr(u,2) - 1), 2), u) +
                       19200 * np.multiply((powr(u,2) - 1), powr(u,3)) );
 
 def kernel_1D(x, c, h, order):
@@ -59,7 +65,7 @@ def kernel(X, order, h=1.0, centre=None):
   ret = np.ones((num_data, 1));
   for dim_idx in range(0, num_dims):
     ret *= kernel_1D(X[:, dim_idx], centre[0, dim_idx], h, order);
-  return ret 
+  return ret
 
 
 if __name__=="__main__":

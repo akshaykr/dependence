@@ -1,5 +1,4 @@
 import numpy as np
-import itertools
 
 def lattice(d, limit=10):
     """
@@ -17,7 +16,6 @@ def lattice(d, limit=10):
             if np.max(tuple) == s-1:
                 for g in all_sign_patterns(tuple):
                     yield g
-    
 
 def all_sign_patterns(v):
     """

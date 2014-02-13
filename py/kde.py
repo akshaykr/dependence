@@ -1,7 +1,6 @@
-import numpy as np
 import density, helper, kernels
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 class KDE(object):
 
@@ -9,6 +8,8 @@ class KDE(object):
         """
         Initialize a kernel density estimator with a n x d matrix of data and the appropriate smoothness s.
         We need to know the smoothness to choose the correct kernel and to choose the correct bandwidth.
+
+        We correct for bias on the boundary by mirroring the data across the axis.
         """
         self.s = s
         self.m = None
@@ -29,19 +30,21 @@ class KDE(object):
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = self.data[:,j]
                 if tuple[j] == 2:
                     self.replicated_data[(self.n*i):(self.n*(i+1)), j] = 2 - self.data[:,j]
-        
+
         self.data = self.replicated_data
-        self.h = np.power(self.n, -1.0/(2*self.s+self.d))
+        self.h = 0.5*np.power(self.n, -1.0/(2*self.s+self.d))
 
         to_keep = [i for i in range(self.data.shape[0]) if np.max(np.abs(self.data[i,:] - np.matrix(0.5*np.ones((1, self.d))))) <= 0.5+self.h]
         self.data = self.replicated_data[to_keep,:]
 
         self.kernel = lambda x, c: kernels.kernel(x, self.m, self.h, centre=c)
-        
+
     def eval2(self, pts):
         """
+        Deprecated
         Evaluate the kernel density estimator at a set of points x.
         """
+        assert False, "Deprecated"
         vals = 1.0/(self.n*self.h**self.d) * np.sum([self.kernel(self.data[j,:] - pts, None) for j in range(self.n)], axis=0).T
         return vals[0,:]
 
@@ -49,21 +52,22 @@ class KDE(object):
         """
         Evaluate the kernel density estimator at a set of points x.
         """
-#         print [self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])]
         vals = 1.0/(self.n * self.h**self.d) * np.sum([self.kernel(self.data, pts[i,:]) for i in range(pts.shape[0])], axis=1)
-#         print vals
         vals = np.maximum(vals, np.matrix(0.5*np.ones(vals.shape)))
         return vals
-#         return vals.T[0,:]
 
-    def kde_error(self, true_p, p_norm):
+    def kde_error(self, true_p, p_norm, pts=1000):
         """
-        compute the error of this estimator in ell_p^p norm. 
+        compute the error of this estimator in ell_p^p norm.
         """
         fn_handle = lambda x: np.power(np.array(np.abs(self.eval(np.matrix(x)) - true_p.eval(np.matrix(x)).reshape(x.shape[0],)))[0,:], p_norm)
-        return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)])
+        return helper.fast_integration(fn_handle, [0.0 for i in range(self.d)], [1.0 for i in range(self.d)], pts=pts)
 
     def kde_error2(self, true_p, p_norm):
+        """
+        Deprecated -- a slower way to compute the error
+        """
+        assert False, "Deprecated"
         coords = np.matrix(np.arange(0, 1, 0.01)).T
         vals = self.eval(coords)
         truth = true_p.eval(coords).reshape(coords.shape[0],)
@@ -81,12 +85,12 @@ if __name__=='__main__':
 
         print "Sampling %d samples from univariate density" % (n)
         data = D.sample(n)
-        
+
         K = KDE(data, s)
-        
+
         pts = np.matrix(np.arange(0, 1.0, 0.001)).T
-        
-        print "Evaluating KDE on %d points" % (pts.shape[0]) 
+
+        print "Evaluating KDE on %d points" % (pts.shape[0])
         vals = K.eval(pts)
 
         fig = plt.figure(1, figsize=(10, 5))
@@ -112,11 +116,11 @@ if __name__=='__main__':
         X,Y = np.meshgrid(x,y)
         v = np.matrix(zip(X.reshape(t**2,), Y.reshape(t**2,)))
 
-        print "Evaluating KDE on %d points" % (len(x)*len(y)) 
+        print "Evaluating KDE on %d points" % (len(x)*len(y))
         z = K.eval(v)
         z = np.array(z)
         Z = z.reshape(len(x), len(y))
-        
+
         fig = plt.figure(2, figsize=(10,5))
         ax1 = fig.add_subplot(131)
         D.plot_fn_histogram(ax=ax1)
