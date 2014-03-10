@@ -7,7 +7,7 @@ close all;
 % Define the following constants
 NUM_SIFT_DIMS = 128;
 NUM_PCA_DIMS = 4;
-SC_BANDWIDTH = 0.001; % bandwidth for spectral clustering
+SC_BANDWIDTH = 0.005; % bandwidth for spectral clustering
 
 num_images_per_cluster = 60;
 
