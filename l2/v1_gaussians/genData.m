@@ -1,6 +1,3 @@
-% Generate Data for v1.
-addpath /usr0/home/kkandasa/software/matlab/libs/kky
-
 % Constants
 DIRICHLET_PRIOR = [2; 2];
 

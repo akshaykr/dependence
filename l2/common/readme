@@ -1,0 +1,8 @@
+I'm putting all main files and unit tests related to the L2-stuff here.
+
+For now I have only clustering, but will also add classification and 2-sample
+testing.
+
+todo: kde creates a nxn matrix so don't use this for a large number of pts.
+kde.m and spectralCluster.m were copied from my libs so they don't have
+unit tests.
