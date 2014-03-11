@@ -3,7 +3,7 @@
 % First load all images and obtain the principal components
 total_num_images = 0;
 all_vectors = zeros(0, NUM_SIFT_DIMS);
-for i = 1:num_clusters
+for i = 1:num_categories
   % load data
   fprintf('Loading %s ... ', categories{i});
   file_name = sprintf('images/%s.mat', categories{i});
@@ -34,29 +34,44 @@ figure; plot(diag(S).^2); title('Eigenvalues of the data matrix');
 clear all_vectors;
 
 % Use only the first NUM_PCA_DIMS principal components
-% Load only num_images_per_cluster images per data
+% Load only num_train_images_per_cluster images per data
 T = V(:, 1:NUM_PCA_DIMS);
 % Reread the data and and compress them
-true_labels = zeros(0, 1);
-data = cell(num_images_per_cluster * num_clusters, 1);
-data_add_counter = 0;
-for i = 1:num_clusters
+train_labels = zeros(0, 1);
+test_labels = zeros(0, 1);
+train_data = cell(num_train_images_per_cluster * num_categories, 1);
+test_data = cell(num_test_images_per_cluster * num_categories, 1);
+train_data_counter = 0;
+test_data_counter = 0;
+
+for i = 1:num_categories
   % load data
   fprintf('Loading %s \n', categories{i});
   file_name = sprintf('images/%s.mat', categories{i});
   load(file_name);
   num_curr_images = numel(images);
   % Now select which images to choose randomly
-  sel_images = randperm(num_curr_images);
-  sel_images = sel_images(1:num_images_per_cluster);
-  % Now add them to data after transforming them 
-  for img_idx = sel_images %images is the name of the struct
-    data_add_counter = data_add_counter + 1;
+  shuffled_images = randperm(num_curr_images);
+  train_images = shuffled_images(1:num_train_images_per_cluster);
+  test_images = shuffled_images(num_train_images_per_cluster+1: ...
+    num_train_images_per_cluster+num_test_images_per_cluster);
+
+  % Now add the train data after transforming them 
+  for img_idx = train_images %images is the name of the struct
+    train_data_counter = train_data_counter + 1;
     rescaled_img = bsxfun(@minus, images{img_idx}, data_mean') / diag(data_std);
-    data{data_add_counter} = rescaled_img * T;
+    train_data{train_data_counter} = rescaled_img * T;
   end
+  % ADd the test data
+  for img_idx = test_images
+    test_data_counter = test_data_counter + 1;
+    rescaled_img = bsxfun(@minus, images{img_idx}, data_mean') / diag(data_std);
+    test_data{test_data_counter} = rescaled_img * T;
+  end
+
   % Add curr_categ_images to data
   % also save the labels.
-  true_labels = [true_labels; i * ones(num_images_per_cluster, 1)];
+  train_labels = [train_labels; i * ones(num_train_images_per_cluster, 1)];
+  test_labels = [test_labels; i * ones(num_test_images_per_cluster, 1)];
 end
 
