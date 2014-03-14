@@ -6,7 +6,7 @@ all_vectors = zeros(0, NUM_SIFT_DIMS);
 for i = 1:num_categories
   % load data
   fprintf('Loading %s ... ', categories{i});
-  file_name = sprintf('images/%s.mat', categories{i});
+  file_name = sprintf('sel_images/%s.mat', categories{i});
   load(file_name);
   num_curr_images = numel(images);
   total_num_images = total_num_images + num_curr_images;
@@ -20,18 +20,21 @@ for i = 1:num_categories
   fprintf('%d features\n', num_vecs_in_categ);
 end
 fprintf('Total # images: %d\n', total_num_images);
+fprintf('Total # features: %d\n', size(all_vectors, 1));
+size(all_vectors),
 
 %% Normalize the data
 data_mean = mean(all_vectors)';
 data_std = std(all_vectors)';
 % In case there are redundant features use std = 1;
 data_std = data_std + double((data_std==0));
-all_vectors = bsxfun(@minus, all_vectors, data_mean') / diag(data_std);
+all_vectors = bsxfun(@rdivide, bsxfun(@minus, all_vectors, data_mean'),
+                     data_std');
 % Now use SVD. Plot the singular values
 fprintf('Running PCA ...\n');
 [~, S, V] = svd(all_vectors, 0); % use thin svd
 figure; plot(diag(S).^2); title('Eigenvalues of the data matrix');
-clear all_vectors;
+% clear all_vectors;
 
 % Use only the first NUM_PCA_DIMS principal components
 % Load only num_train_images_per_cluster images per data

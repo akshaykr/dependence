@@ -1,27 +1,34 @@
 function [model] = distributionClassification(...
-  train_distance_matrix, train_labels);
+  train_distance_matrix, train_labels, cv_cand_bws, cv_cand_Cs);
 % train_distance_matrix is the matrix of distances between each distribuiton.
 % Returns model: a struct containing the libsvm_model, and the optimal params
 
-  NUM_CANDIDATES = 15; % number of candidates (each) for the bandwidth and C 
+  DFLT_NUM_CANDIDATES = 15; % number of candidates for the bandwidth and C 
   NUM_KFOLDCV_PARTITIONS = 10;
 
   % prelims
   num_train_data = size(train_distance_matrix, 1);
 
   % determine the bandwidth candidates
-  u = sort(unique(train_distance_matrix)); u = u(2:end);
-  bw_min = 0.5 * u(1); 
-  bw_max = 2 * u(end);
-  cv_cand_bws = logspace(log10(bw_min), log10(bw_max), NUM_CANDIDATES);
+  if isempty(cv_cand_bws)
+    u = sort(unique(train_distance_matrix)); u = u(2:end);
+    bw_min = 0.5 * u(1); 
+    bw_max = 2 * u(end);
+    cv_cand_bws = logspace(log10(bw_min), log10(bw_max), DFLT_NUM_CANDIDATES);
+  end
 
   % determine the soft margin constant candidates.
-  cv_cand_Cs = logspace(-3, 2, NUM_CANDIDATES);
+  if isempty(cv_cand_Cs)
+    cv_cand_Cs = logspace(-3, 1, DFLT_NUM_CANDIDATES);
+  end
+
+  num_bw_cands = numel(cv_cand_bws);
+  num_C_cands = numel(cv_cand_Cs);
 
   % Use K-fold cross validation to pick k
   best_cv_acc = 0;
-  for i = 1:NUM_CANDIDATES % iterate through cv_cand_bws
-    for j = 1:NUM_CANDIDATES % iterate through cv_cand_Cs
+  for i = 1:num_bw_cands % iterate through cv_cand_bws
+    for j = 1:num_C_cands % iterate through cv_cand_Cs
 
       % Prep arguments for svmtrain
       train_kernel_mat = exp(-train_distance_matrix.^2 / ...
