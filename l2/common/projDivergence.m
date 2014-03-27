@@ -16,20 +16,24 @@ function [l2] = projDivergence(X,Y)
     n2 = size(Y,2);
     d = size(X,1);
 
-    m = int64(max(min(n1, n2)^(2/(4*s+d)), 1));
-    
-    Z = lattice(d, m);
+    m = 2*int64(max(min(n1, n2)^(2/(4*s+d)), 1));
+
+    Z = double(lattice2(-m:m, d));
 
     l2 = 0;
-    for j=1:size(Z,1),
-        xf = exp(2*pi*i*Z(j,1:d)*X);
+    for i=1:size(Z,1),
+        xf = exp(2*pi*1.0j*Z(i,1:d)*X);
         Xf = xf'*xf;
-        l2 = l2 + 1/(n1*(n1-1))*(sum(sum(Xf)) - sum(diag(Xf)));
-        
-        yf = exp(2*pi*i*Z(j,1:d)*Y);
+        coeff = 1/(n1*(n1-1))*(sum(sum(Xf)) - sum(diag(Xf)));
+% $$$         coeff = 1/(n1*n1)*(sum(sum(Xf)));
+
+        yf = exp(2*pi*1.0j*Z(i,1:d)*Y);
         Yf = yf'*yf;
-        l2 = l2 + 1/(n2*(n2-1))*(sum(sum(Yf)) - sum(diag(Yf)));
+        coeff = coeff + 1/(n2*(n2-1))*(sum(sum(Yf)) - sum(diag(Yf)));
+% $$$         coeff = coeff + 1/(n2*n2)*(sum(sum(Yf)));
 
         Zf = xf'*yf;
-        l2 = l2 - 2/(n1*n2)*(sum(sum(Zf)));
+        coeff = coeff - 2/(n1*n2)*(sum(sum(Zf)));
+% $$$         fprintf('basis: %d, coeff: %0.4f\n', Z(i,1:d), real(coeff));
+        l2 = l2 + real(coeff);
     end;
