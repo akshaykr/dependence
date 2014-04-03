@@ -1,6 +1,6 @@
 addpath('../common/');
 
-n = 500;
+n = 100;
 
 l2_dif = @(x) (normpdf(x,0,1) - normpdf(x,1,1)).^2;
 
