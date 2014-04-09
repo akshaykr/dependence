@@ -1,0 +1,9 @@
+*.svn
+*~
+*.log
+*.aux
+*.blg
+*.pyc
+*.out
+*.pdf
+*.bbl

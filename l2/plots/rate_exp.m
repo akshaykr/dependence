@@ -1,11 +1,13 @@
 addpath('../common/');
 
-ns = 10:10:400;
-iters = 20;
+ns = 50:50:1000;
+iters = 50;
+d = 10;
 
 l2_dif = @(x) (normpdf(x,0,1) - normpdf(x,1,1)).^2;
-
 theta = quad(l2_dif, -1000, 1000);
+
+% theta = 0;
 fprintf('theta = %0.3f\n', theta);
 
 ms = [];
@@ -17,7 +19,7 @@ for n=ns,
         x = normrnd(0, 1, [1,n]);
         y = normrnd(1, 1, [1,n]);
 
-        [l2 lb ub] = confidence_interval(x,y,0.05);
+        [l2] = kernel_l2(x,y);
         scores = [scores abs(l2 - theta)];
     end;
     ms = [ms mean(scores)];
