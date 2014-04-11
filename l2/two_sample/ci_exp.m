@@ -1,6 +1,6 @@
 addpath('../common/');
 
-ns = 100:100:800;
+ns = 5:5:200;
 boot = 0;
 
 l2_dif = @(x) (normpdf(x,0,1) - normpdf(x,1,1)).^2;
@@ -8,7 +8,7 @@ l2_dif = @(x) (normpdf(x,0,1) - normpdf(x,1,1)).^2;
 theta = quad(l2_dif, -1000, 1000);
 fprintf('theta = %0.3f\n', theta);
 
-iters = 50;
+iters = 200;
 B = 100;
 pvar = [];
 pboot = [];
@@ -36,6 +36,7 @@ for n=ns,
     bias = [bias mean(biases)];
     pvar = [pvar success/iters];
     pboot = [pboot -1];
-    fprintf('n = %d, bias = %0.3f p_var = %0.3f p_boot = %0.3f\n', n, mean(biases), success/iters, ...
+    fprintf('n = %d, bias = %0.3f p_var = %0.3f p_boot = %0.3f\n', ...
+            n, mean(biases), success/iters, ...
             b_success/iters);
 end;

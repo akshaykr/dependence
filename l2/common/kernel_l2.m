@@ -7,7 +7,7 @@ function [l2] = kernel_l2(X,Y,varargin)
    p = inputParser;
    p.addParamValue('beta', 4, @isscalar);
    p.addParamValue('debug',0, @isscalar);
-   p.addParamValue('fast',1, @isscalar);
+   p.addParamValue('fast', 0, @isscalar);
    p.parse(varargin{:});
    Prms = p.Results;
 

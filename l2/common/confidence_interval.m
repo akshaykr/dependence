@@ -9,11 +9,6 @@ function [l2 lb ub] = confidence_interval(X,Y,alpha)
   var_est = variance_estimate(X,Y);
 
   zalpha = norminv(alpha/2,0,1);
-  %% zalpha = tinv(alpha/2, n-1);
 
   lb = l2 + var_est*zalpha/sqrt(n1/4);
   ub = l2 - var_est*zalpha/sqrt(n1/4);
-
-
-
-

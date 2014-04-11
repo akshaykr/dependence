@@ -22,7 +22,7 @@ function [est] = variance_estimate(X,Y),
   %% T4 = mean(phat(Y2').^2) - mean(phat(Y2'))^2;
   T1 = 4*var(phat(X1'));
   T2 = 4*var(qhat(Y1'));
-  T3 = var(qhat(X2'));
-  T4 = var(phat(Y2'));
+  T3 = 4*var(qhat(X2'));
+  T4 = 4*var(phat(Y2'));
 
   est = T1 + T2 + T3 + T4;
