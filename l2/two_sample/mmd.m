@@ -1,6 +1,4 @@
 function [h,p,that] = mmd(X,Y),
-    addpath('../common/');
-    addpath('./mmd/');
     %% unbiased MMD with gaussian kernel with fixed bandwidth (fixed at 1).
     %% Using Arthur's code
     params = [];
