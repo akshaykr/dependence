@@ -14,16 +14,21 @@ function [model] = distributionClassification(...
     u = sort(unique(train_distance_matrix)); u = u(2:end);
     bw_min = 0.5 * u(1); 
     bw_max = 2 * u(end);
-    cv_cand_bws = logspace(log10(bw_min), log10(bw_max), DFLT_NUM_CANDIDATES);
+    cv_cand_bws = logspace(log10(bw_min), log10(bw_max), DFLT_NUM_CANDIDATES)';
   end
 
   % determine the soft margin constant candidates.
   if isempty(cv_cand_Cs)
-    cv_cand_Cs = logspace(-3, 1, DFLT_NUM_CANDIDATES);
+    cv_cand_Cs = logspace(-3, 1, DFLT_NUM_CANDIDATES)';
   end
 
   num_bw_cands = numel(cv_cand_bws);
   num_C_cands = numel(cv_cand_Cs);
+
+  % Shuffle the data for K-Fold cross validation
+  data_ordering = randperm(num_train_data);
+  shuffled_trtr_matrix = train_distance_matrix(data_ordering, data_ordering);
+  shuffled_tr_labels = train_labels(data_ordering, :);
 
   % Use K-fold cross validation to pick k
   best_cv_acc = 0;
@@ -31,11 +36,12 @@ function [model] = distributionClassification(...
     for j = 1:num_C_cands % iterate through cv_cand_Cs
 
       % Prep arguments for svmtrain
-      train_kernel_mat = exp(-train_distance_matrix.^2 / ...
+      train_kernel_mat = exp(-shuffled_trtr_matrix.^2 / ...
         (2 * cv_cand_bws(i)^2) );
       % shuffle train_kernel_mat
-      shuffle_order = randperm(num_train_data);
-      train_kernel_mat = train_kernel_mat(shuffle_order, shuffle_order);
+%       shuffle_order = randperm(num_train_data);
+%       train_kernel_mat = train_kernel_mat(shuffle_order, shuffle_order);
+%       train_labels = 
 
       k_train = [(1:num_train_data)' train_kernel_mat];
       % -t 4: we are using a custom kernel. -c C is the soft margin constant
@@ -43,7 +49,9 @@ function [model] = distributionClassification(...
       libsvm_args = sprintf('-t 4 -c %f -v %d -q', ...
         cv_cand_Cs(j), NUM_KFOLDCV_PARTITIONS);
       % Run svmtrain
-      curr_cv_acc = svmtrain(train_labels, k_train, libsvm_args);
+      curr_cv_acc = svmtrain(shuffled_tr_labels, k_train, libsvm_args);
+%       fprintf('CV Results (h,C) = (%e, %f) : %f\n', ...
+%         cv_cand_bws(i), cv_cand_Cs(j), curr_cv_acc);
 
       % Determine if this is the best value
       if best_cv_acc < curr_cv_acc;
@@ -73,3 +81,25 @@ function [model] = distributionClassification(...
   model.libsvm_model = libsvm_model;
 
 end
+
+% function cv_err = KFoldExperiment(D, y, numPartitions, bw, C)
+% 
+%   m = size(X, 1);
+%   err_accum = 0;
+% 
+%   for kfold_iter = 1:numPartitions
+%     test_start_idx = round( (kfold_iter-1)*m/num_partitions + 1 );
+%     test_end_idx   = round( kfold_iter*m/num_partitions );
+%     train_indices = [1:test_start_idx-1, test_end_idx+1:m];
+%     test_indices = [test_start_idx : test_end_idx];
+%     Ktr = K(train_indices, train_indices);
+%     ytr = y(train_indices);
+%     Kte = K(test_indices, test_indices);
+%     yte = y(test_indices);
+%     
+%     
+% 
+%   end
+% 
+% end
+

@@ -12,9 +12,11 @@ SIGMA = eye(NUM_DIMS);
 Data = {};
 
 % Sample from mixture
-mixture_probs = dirichlet_sample(DIRICHLET_PRIOR, 1);
-p1 = mixture_probs(1);
-p2 = mixture_probs(2);
+% mixture_probs = dirichlet_sample(DIRICHLET_PRIOR, 1);
+% p1 = mixture_probs(1);
+% p2 = mixture_probs(2);
+p1 = 0.6;
+p2 = 0.4;
 mixture_idxs = double(rand(NUM_DISTS, 1) < p1);
 % Generate NUM_DISTS random means from each prior
 mix1_means = bsxfun(@plus, randn(NUM_DISTS, NUM_DIMS) * chol(S1), MU1');

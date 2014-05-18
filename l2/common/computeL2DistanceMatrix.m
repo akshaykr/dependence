@@ -13,7 +13,8 @@ function [D] = computeL2DistanceMatrix(data)
       fprintf('Computing L2 between %dth distribution and others\n', i);
     end
     for j = (i+1):num_dists
-      l2ij = l2Divergence(data{i}, data{j});
+%       l2ij = l2Divergence(data{i}, data{j});
+      l2ij = l2DivergenceGine(data{i}, data{j});
       if imag(l2ij) > 0, l2ij = 0;
       end
       D(i,j) = l2ij;

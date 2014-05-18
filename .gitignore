@@ -1,9 +1,6 @@
-*.svn
-*~
-*.log
-*.aux
-*.blg
-*.pyc
-*.out
-*.pdf
-*.bbl
+**/*.png
+**/*.jpg
+*.png
+*.jpg
+*.tgz
+*.mat

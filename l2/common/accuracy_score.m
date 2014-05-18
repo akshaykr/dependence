@@ -30,10 +30,10 @@ function score = accuracy_score(true_labels, cluster_labels)
 
 % Print out the number of instances detected per class labels.
 unique_labels = unique(cluster_labels);
-for i = 1:numel(unique_labels)
-  fprintf('Class lbl #%d : %d\n', unique_labels(i), ...
-          sum(cluster_labels == unique(i)));
-end
+% for i = 1:numel(unique_labels)
+%   fprintf('Class lbl #%d : %d\n', unique_labels(i), ...
+%           sum(cluster_labels == unique(i)));
+% end
 
 n = length(true_labels);
 cat = spconvert([(1:n)' true_labels ones(n,1)]);

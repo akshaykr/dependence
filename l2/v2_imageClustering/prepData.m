@@ -28,7 +28,7 @@ data_mean = mean(all_vectors)';
 data_std = std(all_vectors)';
 % In case there are redundant features use std = 1;
 data_std = data_std + double((data_std==0));
-all_vectors = bsxfun(@rdivide, bsxfun(@minus, all_vectors, data_mean'),
+all_vectors = bsxfun(@rdivide, bsxfun(@minus, all_vectors, data_mean'), ...
                      data_std');
 % Now use SVD. Plot the singular values
 fprintf('Running PCA ...\n');
@@ -50,7 +50,7 @@ test_data_counter = 0;
 for i = 1:num_categories
   % load data
   fprintf('Loading %s \n', categories{i});
-  file_name = sprintf('images/%s.mat', categories{i});
+  file_name = sprintf('sel_images/%s.mat', categories{i});
   load(file_name);
   num_curr_images = numel(images);
   % Now select which images to choose randomly
