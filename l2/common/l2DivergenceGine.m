@@ -1,4 +1,4 @@
-function [l2] = l2divergenceGine(X, Y)
+function [l2] = l2divergenceGine(X, Y, bandwidth)
 % Estimates the L2 divergence between X & Y.
 % TODO: kde creates a nxn matrix so don't use this for a large number of pts.
 
@@ -22,25 +22,30 @@ function [l2] = l2divergenceGine(X, Y)
   Y1 = Y(1:m1, :);
   Y2 = Y(m1+1:end, :);
 
-  if USE_SILVERMAN_H
-    stdX = norm(std(X));
-    stdY = norm(std(Y));
-    hXl2 = 1.06 * stdX / n^(-1/(4+d));
-    hYl2 = 1.06 * stdY / m^(-1/(4+d));
+  if ~exist('bandwidth', 'var') | ~isempty(bandwidth)
+    hXl2 = bandwidth;
+    hYl2 = bandwidth;
   else
-    % Use Cross validation to estimate the optimal bandwidth
-    [~, phat, hX] = kde(X1);
-    [~, qhat, hY] = kde(Y1);
-    rescale_bws = true;
-    %   rescale_bws = false;
-    if rescale_bws
-      % Now rescale them to obtain the rates for l2 estimation
-      beta = 2; % smoothness of the function 
-      hXl2 = hX * n ^ (-d/( (4*beta + d) * (2*beta + d) ) );
-      hYl2 = hY * m ^ (-d/( (4*beta + d) * (2*beta + d) ) );
+    if USE_SILVERMAN_H
+      stdX = norm(std(X));
+      stdY = norm(std(Y));
+      hXl2 = 1.06 * stdX / n^(-1/(4+d));
+      hYl2 = 1.06 * stdY / m^(-1/(4+d));
     else
-      hXl2 = hX;
-      hYl2 = hY;
+      % Use Cross validation to estimate the optimal bandwidth
+      [~, phat, hX] = kde(X1);
+      [~, qhat, hY] = kde(Y1);
+      rescale_bws = true;
+      %   rescale_bws = false;
+      if rescale_bws
+        % Now rescale them to obtain the rates for l2 estimation
+        beta = 2; % smoothness of the function 
+        hXl2 = hX * n ^ (-d/( (4*beta + d) * (2*beta + d) ) );
+        hYl2 = hY * m ^ (-d/( (4*beta + d) * (2*beta + d) ) );
+      else
+        hXl2 = hX;
+        hYl2 = hY;
+      end
     end
   end
 

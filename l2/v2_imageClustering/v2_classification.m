@@ -14,7 +14,8 @@ performBarnClass = true;
 
 % filename = 'C1to8_tr50te50_d10_phow.mat'; % the old l2 estimator
 % filename = 'C1to8_tr50te50_d10_phow_v2.mat'; % new l2 est with CV for bw
-filename = 'C1to8_tr50te50_d10_phow_sil.mat'; % new l2 est with silverman bw
+% filename = 'C1to8_tr50te50_d10_phow_sil.mat'; % new l2 est with silverman bw
+filename = 'temp.mat';
 % load_data_from_file = true;
 load_data_from_file = false;
 
@@ -49,7 +50,7 @@ if ~load_data_from_file
   all_data = [train_data; test_data];
   train_indices = 1:num_train_data;
   test_indices = (num_train_data + 1):(num_train_data + num_test_data);
-  distance_matrix = computeL2DistanceMatrix(all_data);
+  distance_matrix = computeL2DistanceMatrix(all_data, 1e-2);
 
   % Compute Barnabas's Stuff
   barn_Ds = sqrt( NPDivs(all_data, [], {@NPDivL22_RhoNu}, struct('k', '3')) );
@@ -64,6 +65,7 @@ else
 end
 
 if performDistClass
+  model = distClassCVBW(train_data, train_labels, [], []);
   % Obtain the train-train and test-train distance matrices.
   tr_distance_matrix = distance_matrix(1:num_train_data, 1:num_train_data);
   tetr_distance_matrix = distance_matrix(num_train_data+1:end,1:num_train_data);
