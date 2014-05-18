@@ -1,4 +1,4 @@
-function [D] = computeL2DistanceMatrix(data)
+function [D] = computeL2DistanceMatrix(data, bandwidth)
 % data is a cell array containing num_dists matrices. Each matrix of size
 % nixnum_dims gives the points sampled from each distribution.
 
@@ -14,7 +14,7 @@ function [D] = computeL2DistanceMatrix(data)
     end
     for j = (i+1):num_dists
 %       l2ij = l2Divergence(data{i}, data{j});
-      l2ij = l2DivergenceGine(data{i}, data{j});
+      l2ij = l2DivergenceGine(data{i}, data{j}, bandwidth);
       if imag(l2ij) > 0, l2ij = 0;
       end
       D(i,j) = l2ij;

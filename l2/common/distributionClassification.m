@@ -82,24 +82,3 @@ function [model] = distributionClassification(...
 
 end
 
-% function cv_err = KFoldExperiment(D, y, numPartitions, bw, C)
-% 
-%   m = size(X, 1);
-%   err_accum = 0;
-% 
-%   for kfold_iter = 1:numPartitions
-%     test_start_idx = round( (kfold_iter-1)*m/num_partitions + 1 );
-%     test_end_idx   = round( kfold_iter*m/num_partitions );
-%     train_indices = [1:test_start_idx-1, test_end_idx+1:m];
-%     test_indices = [test_start_idx : test_end_idx];
-%     Ktr = K(train_indices, train_indices);
-%     ytr = y(train_indices);
-%     Kte = K(test_indices, test_indices);
-%     yte = y(test_indices);
-%     
-%     
-% 
-%   end
-% 
-% end
-
