@@ -10,5 +10,5 @@ function [l2 lb ub] = confidence_interval(X,Y,alpha)
 
   zalpha = norminv(alpha/2,0,1);
 
-  lb = l2 + var_est*zalpha/sqrt(n1/4);
-  ub = l2 - var_est*zalpha/sqrt(n1/4);
+  lb = l2 + sqrt(var_est)*zalpha/sqrt(n1/2);
+  ub = l2 - sqrt(var_est)*zalpha/sqrt(n1/2);

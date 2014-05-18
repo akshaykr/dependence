@@ -40,6 +40,7 @@ function [est_probs, f, h] = kde(X, given_hs)
 
   % finally prep results for returning
   h = best_h;
+  %% h = silverman_h;
   f = @(data) ( sum(GaussKernel(h, X, data))'/ n); 
   est_probs = f(X);
 
