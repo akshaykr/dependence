@@ -1,4 +1,7 @@
 function [psuccess] = local_departure(mus, test)
+%% Two sample test scaffold. Looks at probability of successfully rejecting the null
+%% as a function of the mean separation between the distributions for @test.
+%% We are not using this anymore. 
 
 psuccess = [];
 iters = 100;

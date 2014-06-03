@@ -1,3 +1,4 @@
+% Script for testing bootstrap
 addpath('../common/');
 
 B = 100;

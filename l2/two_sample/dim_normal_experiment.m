@@ -1,4 +1,10 @@
 function [psuccess] = dim_normal_experiment(mu, test, ds, scaled)
+%% Routine for looking at two sample testing between normals as a function
+%% of dimension. 
+%% Scaled indicates whether to rescale the second distribution.
+%% scaled=1 makes the second distribution mu/sqrt(d) (1, \ldots, 1)
+%% otherwise it is mu(1, \ldots, 1).
+
 psuccess = [];
 n = 100;
 iters = 200;

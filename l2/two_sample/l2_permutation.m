@@ -1,4 +1,6 @@
 function [h,p,that, others] = l2_permutation(X,Y)
+%% permutation two-sample test for L_2 divergence. 
+
   that = kernel_l2_no_split(X,Y);
   n1 = size(X,2);
   n2 = size(Y,2);
