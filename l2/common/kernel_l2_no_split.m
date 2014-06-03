@@ -1,4 +1,7 @@
 function [l2] = kernel_l2_no_split(X,Y)
+%% Returns the l2 squared distance estimator for the two samples X,Y
+%% without data splitting.
+%% Uses the bi-variate kernel evaluations as the estimator.
 
 n1 = size(X,2);
 n2 = size(Y,2);

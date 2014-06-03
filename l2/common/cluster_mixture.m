@@ -1,4 +1,7 @@
 function [c1 c2] = cluster_mixture(Data),
+%% Perform two way normalized spectral clustering on the set of distributions in Data
+%% Data is a m x d x n tensor of m samples from each of n distributions in d dimensions. 
+%% Use a similarity function based on the L_2 divergence estimator. 
 
 n = size(Data,3);
 
@@ -11,13 +14,8 @@ for i=1:n,
     end;
 end;
 
-%% project M onto PSD cone by zero-ing out negative eigenvalues.
-% [u,v] = eig(M);
-% v(find(v < 0)) = 0;
-% M = u*v*u';
 
 D = diag(diag(M));
-% L = D - M;
 Ls = D^(-1/2)*M*D^(-1/2);
 
 [u,v] = eig(Ls);

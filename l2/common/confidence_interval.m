@@ -1,4 +1,11 @@
 function [l2 lb ub] = confidence_interval(X,Y,alpha, split, ci_method)
+%% Compute a confidence interval for the l2 divergence between X and Y. 
+%% several options are available:
+%% alpha = probability of failure.
+%% split = boolean specifying whether to data split or not
+%% ci_method = 0 indicates to not data split when estimating the asymptotic variance
+               1 indicates to data split
+               2 is to use the bootstrap.
 
   n1 = size(X,2);
   n2 = size(Y,2);
