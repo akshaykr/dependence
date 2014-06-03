@@ -1,7 +1,7 @@
-function [ns, ps] = ci_data(ns, d, iters)
+function [ns, ps] = ci_data(ns, d, iters, split, ci_method)
 
 ps = [];
-theta = 1/(2*sqrt(pi))^d * 2*(exp(1/4) -1)/exp(1/4);
+theta = 2/(2*sqrt(pi))^d * (1 - exp(-d/4));
 for n=ns,
     success = 0;
     for i=1:iters,
@@ -11,10 +11,12 @@ for n=ns,
         else,
             v = repmat(0, 1, d);
             x = mvnrnd(v, eye(d), n)';
-            v(1) = 1;
+            v = repmat(1, 1, d);
             y = mvnrnd(v, eye(d), n)';
         end;
-        [l2 lb ub] = confidence_interval(x,y,0.05);
+        [l2 lb ub] = confidence_interval(x,y,0.10, split, ci_method);
+        %% fprintf('truth %0.2e l2 %0.2e lb %0.2e ub %0.2e\n', theta, ...
+        %%       l2, lb, ub);
         if theta >= lb && theta <= ub,
             success = success + 1;
         end;

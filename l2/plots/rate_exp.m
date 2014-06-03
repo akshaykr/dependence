@@ -1,29 +1,23 @@
 addpath('../common/');
 
-ns = 20:20:1000;
-iters = 200;
+ns = 50:50:10000;
+iters = 10;
 
-d = 1;
-%% OLD -- I'm looking at the p=q situation so theta = 0.
-if d == 1
-    l2_dif = @(x) (normpdf(x, 0.5, 1) - normpdf(x, -0.5, 1)).^2;
-    theta = quad(l2_dif, -1000, 1000);
-else,
-    l2_dif = @(x) (mvnpdf(x,repmat(-0.5,1, d),eye(d)) - mvnpdf(x,repmat(0.5,1, ...
-                                                      d),eye(d))).^2;
-    %% Perform Monte Carlo integration.
-    pts = 10000;
-    draws = unifrnd(-2, 2, [pts d]);
-    theta = mean(l2_dif(draws));
-end;
-
-theta = 0;
-fprintf('theta = %0.3f\n', theta);
 fprintf('d = 1\n');
 [ns, ms1, vs1] = rate_data(ns, 1, iters);
+save('./rate_data_1.mat', 'ns', 'ms1', 'vs1');
 fprintf('d = 2\n');
 [ns, ms2, vs2] = rate_data(ns, 2, iters);
+save('./rate_data_2.mat', 'ns', 'ms2', 'vs2');
 fprintf('d = 3\n');
 [ns, ms3, vs3] = rate_data(ns, 3, iters);
+save('./rate_data_3.mat', 'ns', 'ms3', 'vs3');
+fprintf('d = 5\n');
+[ns, ms5, vs5] = rate_data(ns, 5, iters);
+save('./rate_data_5.mat', 'ns', 'ms5', 'vs5');
+fprintf('d = 10\n');
+[ns, ms10, vs10] = rate_data(ns, 10, iters);
+save('./rate_data_10.mat', 'ns', 'ms10', 'vs10');
 
-save('./rate_data.mat', 'ns', 'ms1', 'vs1', 'ms2', 'vs2', 'ms3', 'vs3');
+save('./rate_data.mat', 'ns', 'ms1', 'vs1', 'ms2', 'vs2', 'ms3', ...
+     'vs3', 'ms5', 'vs5', 'ms10', 'vs10');

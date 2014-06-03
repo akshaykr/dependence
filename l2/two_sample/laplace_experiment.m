@@ -5,8 +5,8 @@ function [psuccess] = laplace_experiment(mus, test),
 addpath('../common/');
 
 psuccess = [];
-n = 20;
-iters = 100;
+n = 40;
+iters = 200;
 
 for mu=mus,
     s = 0;
