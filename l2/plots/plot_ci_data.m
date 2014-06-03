@@ -1,5 +1,5 @@
+%% Script for plotting confidence interval data. 
 
-%% load('./c_data_1_2_3.mat');
 load('./ci_data_1.mat');
 load('./ci_data_2.mat');
 load('./ci_data_3.mat');

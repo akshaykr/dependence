@@ -1,3 +1,5 @@
+%% Script for evaluating various two-sample tests across a range of dimensions
+
 addpath('../common/');
 addpath('../two_sample/');
 addpath('../two_sample/mmd/');

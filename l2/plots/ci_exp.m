@@ -1,3 +1,6 @@
+%% Script for generating confidence interval data. 
+%% Runs the confidence interval experiment for various parameter settings. 
+
 addpath('../common/');
 
 ns = 50:50:2000;

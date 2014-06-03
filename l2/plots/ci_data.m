@@ -1,4 +1,11 @@
 function [ns, ps] = ci_data(ns, d, iters, split, ci_method)
+%% evaluate the quality of a confidence interval for the L_2 divergence estimator
+%% in d dimensions where data is drawn from two gaussians. 
+%% split is a boolean that specifies whether we should be data-splitting on the
+%% estimator or not. Usually you should set split = 1 and ci_method = 1. 
+%% Returns a vector of samples sizes (which you passed in) and the empirical
+%% probabilities of trapping the true parameter (averaged over the number of
+%% iterations).
 
 ps = [];
 theta = 2/(2*sqrt(pi))^d * (1 - exp(-d/4));

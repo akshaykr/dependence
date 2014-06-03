@@ -1,3 +1,5 @@
+%% Script for evaluating two sample tests on gaussians. 
+
 addpath('../common/');
 addpath('../two_sample/');
 addpath('../two_sample/mmd/');

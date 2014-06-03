@@ -1,3 +1,5 @@
+%% Script for plotting two sample testing data as a function of dimension.
+
 load('dim_two_sample_normal_unscaled.mat');
 
 f = figure();

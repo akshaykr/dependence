@@ -1,9 +1,12 @@
 function [ns, ms, vs] = laplace_rate(ns, mu, s, iters),
-%% numerically integrate the difference between the two laplace
+%% Rate of convergence simulation for the L_2 estimator between two 
+%% Laplace distributions. 
+%% mu is the mean separation and s is the variance of both distributions. 
+%% Returns the sample sizes, the empirically expected error and the variance of the 
+%% errors. 
+
+%% Monte Carlo the difference between the two laplace
 %% distributions.
-
-%% P_1 is L(-mu/2, 1) while P_2 is L(mu/2, s).
-
 pts = -10:0.01:10;
 theta = mean((1/2*exp(- abs(pts + mu/2)) - 1/(2*s)*exp(-abs(pts - ...
                                                   mu/2)/(s))).^2);

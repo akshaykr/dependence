@@ -1,4 +1,5 @@
-%% load('./rate_data.mat');
+%% Script for plotting rate of convergence data. 
+
 load('./rate_data_1.mat');
 load('./rate_data_3.mat');
 load('./rate_data_5.mat');

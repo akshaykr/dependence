@@ -1,3 +1,5 @@
+%% Script for comparing different types of confidence intervals 
+%% for the L_2 divergence estimator
 
 n = 10:10:100;
 iters = 200;

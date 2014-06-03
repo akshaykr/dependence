@@ -1,3 +1,5 @@
+%% Script for plotting two sample data (as a function of mean separation)
+
 load('two_sample_normal_exp.mat');
 
 f = figure();

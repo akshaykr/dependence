@@ -1,3 +1,5 @@
+%% Script for looking at the error and the confidence interval of 
+%% the square integral estimator.
 addpath('../common/');
 
 d = 3;

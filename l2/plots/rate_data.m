@@ -1,4 +1,8 @@
 function [ns, ms, vs] = rate_data(ns, d, iters),
+%% Compute the error of the L_2 divergence estimator as a function of
+%% the number of samples in d dimension. 
+%% returns sample sizes, means and variances of empirical error distribution. 
+
   theta = 2/(2*sqrt(pi))^d * (1 - exp(-d/4));
   fprintf('theta = %0.4f\n', theta);
   ms = [];

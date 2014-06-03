@@ -1,3 +1,5 @@
+%% Script for rate of convergence experiments. 
+
 addpath('../common/');
 
 ns = 50:50:10000;
