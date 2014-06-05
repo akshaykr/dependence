@@ -4,7 +4,8 @@ function [Data, Labels] = mixture_model(n,m,d,mu,sigma),
 %% distribution on the individual distributions means. 
 %% draw n points per class and m samples per point.
 
-Data = zeros(m, d, 2*n);
+Data = {};
+% Data = zeros(m, d, 2*n);
 Labels = zeros(2*n, 1);
 
 if sigma == 0,
@@ -14,7 +15,7 @@ else,
 end
 for i=1:n,
     x = mvnrnd(c0_means(i,:), eye(d), m);
-    Data(:,:,i) = x;
+    Data{i} = x;
     Labels(i) = -1;
 end;
 
@@ -25,6 +26,6 @@ else
 end;
 for i=1:n,
     x = mvnrnd(c1_means(i,:), eye(d), m);
-    Data(:,:,i+n) = x;
+    Data{i+n} = x;
     Labels(i+n) = 1;
 end;

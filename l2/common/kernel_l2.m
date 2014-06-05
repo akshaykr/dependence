@@ -38,7 +38,7 @@ function [l2] = kernel_l2(X,Y,varargin)
        %% h = h_old*n1^(-2/(4*Prms.beta+d) + 1/(2*Prms.beta+d));
        %% h = 0.1/(n1)^(1-0.1);
 
-       h = 0.5*n1^(-2/(4*Prms.beta+d));
+       h = 1*n1^(-2/(4*Prms.beta+d));
        if Prms.debug == 1,
            fprintf('h_old=%0.2f h_new=%0.2f\n', h_old, h);
        end;
